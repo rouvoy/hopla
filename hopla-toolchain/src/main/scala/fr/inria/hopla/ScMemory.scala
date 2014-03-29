@@ -8,54 +8,58 @@ package fr.inria.hopla
 trait ScMemory
 
 abstract class ScClass(value: List[Any]) {
-  var toString: String
   var pos: Int
 
-  def write = toString
+  def write = this.toString
 
   def getPos = pos
 }
 
-class ScName(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScName(value: List[Any]) extends ScClass(value: List[Any]) {
   override var pos = 1
-  override var toString = "class " + value(0)
+
+  override def toString(): String = "class " + value(0)
 }
 
-class ScVariable(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScVariable(value: List[Any]) extends ScClass(value: List[Any]) {
   override var pos = 2
-  override var toString = ""
+
+  override def toString(): String = ""
 }
 
-class ScParam(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScParam(value: List[Any]) extends ScClass(value: List[Any]) {
   override var pos = 3
   val typeName = value(0) match {
     case "xs:string" => "s: String"
     // possible on adding new type
   }
-  override var toString = typeName
+
+  override def toString(): String = typeName
 }
 
-class ScBody(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScBody(value: List[Any]) extends ScClass(value: List[Any]) {
   override var pos = 4
+  var s: StringBuilder = new StringBuilder()
   val funName = value(0).toString
-  override var toString = "def " + funName + " = "
-  for (i <- 1 to value.length - 1)
+  s ++= "def " ++= funName ++= " = "
+  for (i <- 1 to value.length - 1) {
     value(i) match {
-      case num: Int => toString += value(i)
+      case num: Int => s ++= value(i).toString
       case list: List[Element] =>
         if (!list.isEmpty) {
-          toString += "["
+          s ++= "["
           for (l <- list if !l.equals(list.last)) {
-            toString += "\"" + l.getAttributeString("name") + "\","
+            s ++= "\"" ++= l.getAttributeString("name") ++= "\","
           }
-          toString += "\"" + list.last.getAttributeString("name") + "\""
-          toString += "]"
+          s ++= "\"" ++= list.last.getAttributeString("name") ++= "\""
+          s ++= "]"
         }
         else {
-          toString += "null"
+          s ++= "null"
         }
     }
-
+  }
+  override def toString(): String = s.toString()
 }
 
 object ScFunction extends ScMemory {
