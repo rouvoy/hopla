@@ -1,6 +1,7 @@
 package fr.inria.hopla
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -14,7 +15,7 @@ class Parser(val fileName: String) {
   lazy val xsdFile = scala.xml.XML.loadFile(fileName)
   // find all element node sequence
   val element = xsdFile \\ "element"
-  var temp: ListBuffer[Element] = new ListBuffer[Element]
+  val elementMap: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
   val elementList: ListBuffer[Element] = new ListBuffer[Element]
 
   /**
@@ -24,41 +25,26 @@ class Parser(val fileName: String) {
    *
    */
   def parse() {
-    var level = 1
+    val level = 1
     for (e <- element) {
       //      println(e)
       val elem = new Element(e)
-      var exist = false
+
       //      println(elem.getAttributeString("name"))
-      if (!temp.isEmpty) {
-        for (t <- temp) {
-          //          println(t.getAttributeString("name"))
-          if (t.getAttributeString("name") == elem.getAttributeString("name") && !elementList.contains(t)) {
-            elementList += t
-            //            println(elem.getAttributeString("name"))
-            exist = true
-          }
-        }
-        if (!exist) {
-          elem.level_=(level)
-          elem.generate
-          elem.setParentAndLevel
-          temp = elem.childs
-          level += 1
-          elementList += elem
-          //          println(elem.getAttributeString("name"))
-        }
-      }
-      else {
+      if (!elementMap.contains(elem.getAttributeString("name"))) {
         elem.level_=(level)
-        elem.generate
-        elem.setParentAndLevel
         elem.root_=(true)
-        temp = elem.childs
-        level += 1
-        elementList += elem
-        //        println(elem.getAttributeString("name"))
+        val tempNameList = elem.generate
+        tempNameList.foreach {
+          case (key, value) => elementMap.put(key, value)
+        }
+        elementMap.put(elem.getAttributeString("name"), elem)
+        println(elem.getAttributeString("name") + " " + elem.level)
       }
+    }
+
+    elementMap.foreach {
+      case(key, value) => elementList += value
     }
   }
 }

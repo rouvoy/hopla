@@ -2,6 +2,7 @@ package fr.inria.hopla
 
 import scala.xml.Node
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -11,31 +12,39 @@ import scala.collection.mutable.ListBuffer
  *
  */
 class Element(element: Node) {
-  private val _parent: ListBuffer[Element] = new ListBuffer[Element]();
-  private val _childs: ListBuffer[Element] = new ListBuffer[Element]();
+  private val _parent: ListBuffer[Element] = new ListBuffer[Element]()
+  private val _childs: ListBuffer[Element] = new ListBuffer[Element]()
   private var _level = 0
   private var _root = false
+  // important name list who remember all created element during the recursive process generate
+  // preventing double generation using dynamic programming
+  private val nameList: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
 
   /**
    * Generate child element from the parent, so their relation can be defined
    *
    * @return
    */
-  def generate = {
-    for (e <- element.child \\ "element") yield _childs += new Element(e)
-  }
-
-  /**
-   * Suite function of generate, fix the relation and set the level from current
-   *
-   */
-  def setParentAndLevel = {
-    if (!_childs.isEmpty) {
-      for (e <- _childs) {
-        e.parent_=(this)
-        e.level_=(this.level + 1)
+  def generate: mutable.HashMap[String, Element] = {
+    val child = element.child \\ "element"
+    if (!child.equals(null)) {
+      for (e <- child) yield {
+        val temp: Element = new Element(e)
+        if (!nameList.contains(temp.getAttributeString("name"))) {
+          temp.parent_=(this)
+          temp.level_=(value = level + 1)
+          val tempNameList = temp.generate
+          tempNameList.foreach {
+            case (key, value) => nameList.put(key, value)
+          }
+          nameList.put(temp.getAttributeString("name"), temp)
+          _childs += temp
+          println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getAttributeString("name")))
+          //          println(e)
+        }
       }
     }
+    nameList
   }
 
   // Setter
@@ -64,10 +73,10 @@ class Element(element: Node) {
 
   /**
    * Get attribute by name and return its string as result
-   * @param s
+   * @param s given argument
    * @return
    */
-  def getAttributeString(s: String) = {
+  def getAttributeString(s: String): String = {
     element.attribute(s) match {
       case Some(s) => s.toString()
       case None => null

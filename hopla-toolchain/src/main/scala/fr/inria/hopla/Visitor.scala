@@ -11,10 +11,10 @@ class Visitor(val fileName: String) {
   parser.parse()
 
   def visitByLevel(level: Int) {
-    println("\n**Begin to visit level " + level + " parents")
+    println("\n**Begin to visit level " + level + " parents\n")
     for (p <- parser.elementList) {
       if (p.level == level) {
-        println("Visiting " + p.getAttributeString("name") + " Level = " + p.level)
+        println("Visiting " + p.getAttributeString("name") + " Level = " + p.level + "\n")
         if (p.childs.nonEmpty)
           visitChilds(p.childs)
       }
@@ -24,11 +24,14 @@ class Visitor(val fileName: String) {
   def visitChilds(childList: ListBuffer[Element]) {
     for (c <- childList) {
       println("Visiting " + c.getAttributeString("name") + " Children level = " + c.level)
-      print(c.getAttributeString("name") + "'s parent is/are ");
+      print(c.getAttributeString("name") + "'s parent is/are ")
       for (p <- c.parent) {
         println(p.getAttributeString("name"))
       }
       println()
+      if (c.childs.nonEmpty) {
+        visitChilds(c.childs)
+      }
     }
   }
 }

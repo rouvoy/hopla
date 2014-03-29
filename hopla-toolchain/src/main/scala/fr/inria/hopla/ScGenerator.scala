@@ -1,10 +1,10 @@
 package fr.inria.hopla
 
 /**
- * Created by JIN Benli on 05/03/14.
- *
- * Test function for creating element scala class, version naif
- */
+* Created by JIN Benli on 05/03/14.
+*
+* Test function for creating element scala class, version naif
+*/
 
 object ScGenerator {
   def main(args: Array[String]) {
