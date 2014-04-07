@@ -1,4 +1,4 @@
-package fr.inria.hopla.VisitorCase.HtmlTag
+package fr.inria.hopla.visitorCase.HtmlTag
 
 import scala.collection.SortedMap
 
@@ -22,6 +22,14 @@ trait Node extends Modifier {
   def transform(tag: HtmlTag) = {
     tag.copy(children = this :: tag.children)
   }
+}
+
+/**
+ * A tag which contain a String
+ * @param v
+ */
+case class StringNode(v: String) extends Node {
+  def writeTo(strb : StringBuilder): Unit = Escaping.escape(v, strb)
 }
 
 case class HtmlTag(tag: String = "",
@@ -68,3 +76,25 @@ case class HtmlTag(tag: String = "",
     }
   }
 }
+
+case class AttrPair(attr: Attr, value: String) extends Modifier {
+  def transform(tag: HtmlTag) = {
+    tag.copy(attrs = tag.attrs.updated(attr.name, value))
+  }
+}
+
+abstract class Attr {
+  def name: String
+  if(!Escaping.validAttrName(name))
+    throw new IllegalArgumentException(
+      s"Illegal attribute name: $name is not a valid XML attribute name"
+    )
+  def :=(v: String) = AttrPair(this, v)
+}
+
+case class UntypedAttr(name: String) extends Attr
+
+case class TypedAttr[T](name: String) extends Attr {
+  def :=(v: T): AttrPair = AttrPair(this, v.toString)
+}
+

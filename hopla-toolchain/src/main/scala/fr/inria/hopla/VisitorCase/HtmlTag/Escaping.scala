@@ -1,4 +1,4 @@
-package fr.inria.hopla.VisitorCase.HtmlTag
+package fr.inria.hopla.visitorCase.HtmlTag
 
 /**
  * Created by JIN Benli on 26/03/14.
