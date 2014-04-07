@@ -13,7 +13,7 @@ import scala.collection.mutable
  */
 class Element(element: Node) {
   private val _parent: ListBuffer[Element] = new ListBuffer[Element]()
-  private val _childs: ListBuffer[Element] = new ListBuffer[Element]()
+  private val _child: ListBuffer[Element] = new ListBuffer[Element]()
   private var _level = 0
   private var _root = false
   // important name list who remember all created element during the recursive process generate
@@ -38,7 +38,7 @@ class Element(element: Node) {
             case (key, value) => nameList.put(key, value)
           }
           nameList.put(temp.getAttributeString("name"), temp)
-          _childs += temp
+          _child += temp
           println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getAttributeString("name")))
           //          println(e)
         }
@@ -61,9 +61,9 @@ class Element(element: Node) {
 
   def parent = _parent
 
-  def childs_=(value: Element): Unit = _childs += value
+  def childs_=(value: Element): Unit = _child += value
 
-  def childs = _childs
+  def childs = _child
 
   /**
    * Get all attributes as type of MetaData

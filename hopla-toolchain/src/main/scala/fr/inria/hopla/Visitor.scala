@@ -16,12 +16,12 @@ class Visitor(val fileName: String) {
       if (p.level == level) {
         println("Visiting " + p.getAttributeString("name") + " Level = " + p.level + "\n")
         if (p.childs.nonEmpty)
-          visitChilds(p.childs)
+          visitChild(p.childs)
       }
     }
   }
 
-  def visitChilds(childList: ListBuffer[Element]) {
+  def visitChild(childList: ListBuffer[Element]) {
     for (c <- childList) {
       println("Visiting " + c.getAttributeString("name") + " Children level = " + c.level)
       print(c.getAttributeString("name") + "'s parent is/are ")
@@ -30,7 +30,7 @@ class Visitor(val fileName: String) {
       }
       println()
       if (c.childs.nonEmpty) {
-        visitChilds(c.childs)
+        visitChild(c.childs)
       }
     }
   }
