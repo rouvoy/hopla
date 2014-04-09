@@ -25,36 +25,12 @@ class Parser(val fileName: String) {
    *
    */
   def parse() {
-    val level = 1
     //      println(e)
     val elem = new Element(element)
-//    if (elem.getAttributeString("name") == null) {
-//      val tempNameList = elem.generate
-//      elem.generateTo
-//      tempNameList.foreach {
-//        case (key, value) => elementMap.put(key, value)
-//      }
-//      //        elementMap.put(elem.getNameSpace, elem)
-//      println("Namespace: " + elem.getNameSpace)
-//    }
-//    else {
-//      if (!elementMap.contains(elem.getAttributeString("name"))) {
-//        elem.level_=(level)
-//        elem.root_=(true)
-//        val tempNameList = elem.generate
-//        tempNameList.foreach {
-//          case (key, value) => elementMap.put(key, value)
-//        }
-//        elementMap.put(elem.getAttributeString("name"), elem)
-//        println(elem.getAttributeString("name") + " " + elem.level)
-//      }
-//    }
-    elementMap ++= elem.generateTo
-
-
+    elementMap ++= elem.generate
     elementMap.foreach {
       case (key, value) => {
-        println(key + " " + value)
+//        println(key + " " + value)
         elementList += value
       }
     }

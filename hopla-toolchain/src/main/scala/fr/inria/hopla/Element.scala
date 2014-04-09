@@ -28,49 +28,13 @@ class Element(element: Node) {
    * @return
    */
   def generate: mutable.HashMap[String, Element] = {
-    val child = element.child
-    //    println(child)
-    //    if (!child.equals(null)) {
-    for (e <- child) yield {
-      //        println(e)
-      val temp: Element = new Element(e)
-      if (temp.getAttributeString("name") == null) {
-        temp.parent_=(this)
-        temp.level_=(value = level)
-        val tempNameList = temp.generate
-        tempNameList.foreach {
-          case (key, value) => nameList.put(key, value)
-        }
-        nameList.put(temp.getNameSpace, temp)
-        _child += temp
-        println("Namespace: " + temp.getNameSpace + " Parent: " + temp.parent(0).getNameSpace)
-      }
-      //        if (!nameList.contains(temp.getAttributeString("name"))) {
-      else {
-        temp.parent_=(this)
-        temp.level_=(value = level + 1)
-        val tempNameList = temp.generate
-        tempNameList.foreach {
-          case (key, value) => nameList.put(key, value)
-        }
-        nameList.put(temp.getAttributeString("name"), temp)
-        _child += temp
-        println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getNameSpace))
-        //          println(e)
-      }
-      //      }
-    }
-    nameList
-  }
-
-  def generateTo: mutable.HashMap[String, Element] = {
     val namespace: String = element.label
     namespace match {
       case "schema" => {
         for (child <- element.child) {
           val elementChild = new Element(child)
           elementChild.root_=(true)
-          nameList ++= elementChild.generateTo
+          nameList ++= elementChild.generate
         }
       }
       case "element" => {
@@ -81,12 +45,15 @@ class Element(element: Node) {
         }
         else {
           this.level_=(this.parent.last.level + 1)
+          for (p <- this.parent) {
+            p.childs_=(this)
+          }
           nameList.put(this.getAttributeString("name"), this)
         }
         for (child <- element.child) {
           val elementChild = new Element(child)
           elementChild.parent_=(this)
-          nameList ++= elementChild.generateTo
+          nameList ++= elementChild.generate
         }
       }
       case "complexType" => {
@@ -104,7 +71,7 @@ class Element(element: Node) {
                 val elementGrandChild = new Element(grandChild)
                 elementGrandChild.parent ++= this.parent
                 elementGrandChild.level_=(elementGrandChild.parent.last.level)
-                nameList ++= elementGrandChild.generateTo
+                nameList ++= elementGrandChild.generate
               }
             }
             case "#PCDATA" => {}
@@ -112,19 +79,19 @@ class Element(element: Node) {
         }
       }
       case "simpleType" => {
-        for(p <- this.parent) {
+        for (p <- this.parent) {
           p.xsdAttributes_=("simpleType")
         }
-        for(child <- element.child) {
+        for (child <- element.child) {
           val namespace = child.label
           namespace match {
             case "restriction" => {
               for (p <- this.parent) {
                 p.xsdAttributes_=("restriction")
               }
-              for(grandChild <- child.child) {
+              for (grandChild <- child.child) {
                 val enumGrandChild = new Enumeration(grandChild)
-                for(p <- this.parent) {
+                for (p <- this.parent) {
                   p.enum_=(enumGrandChild)
                 }
               }
@@ -135,8 +102,6 @@ class Element(element: Node) {
       }
       case "#PCDATA" => {}
     }
-
-    println(namespace + "........")
     nameList
   }
 
