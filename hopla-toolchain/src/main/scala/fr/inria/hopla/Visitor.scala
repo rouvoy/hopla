@@ -5,7 +5,11 @@ import scala.collection.mutable.ListBuffer
 /**
  * Created by JIN Benli on 26/03/14.
  */
-class Visitor(val fileName: String) {
+trait VisitorMode {
+  val parser: Parser
+}
+
+class Visitor(val fileName: String) extends VisitorMode{
 
   val parser: Parser = new Parser(fileName)
   parser.parse()

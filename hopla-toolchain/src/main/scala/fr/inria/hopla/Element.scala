@@ -26,12 +26,22 @@ class Element(element: Node) {
    * @return
    */
   def generate: mutable.HashMap[String, Element] = {
-    val child = element.child \\ "element"
-    if (!child.equals(null)) {
+    val child = element.child
+//    println(child)
+//    if (!child.equals(null)) {
       for (e <- child) yield {
+//        println(e)
         val temp: Element = new Element(e)
-        if (!nameList.contains(temp.getAttributeString("name"))) {
+        if(temp.getAttributeString("name") == null) {
+          println("Namespace: " + temp.getNameSpace)
+          temp.parent.++=(this.parent)
           temp.parent_=(this)
+          temp.level_= (value = level)
+          temp.generate
+        }
+          //        if (!nameList.contains(temp.getAttributeString("name"))) {
+        else {
+          temp.parent.++=:(this.parent)
           temp.level_=(value = level + 1)
           val tempNameList = temp.generate
           tempNameList.foreach {
@@ -41,8 +51,8 @@ class Element(element: Node) {
           _child += temp
           println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getAttributeString("name")))
           //          println(e)
-        }
-      }
+                  }
+//      }
     }
     nameList
   }
@@ -82,4 +92,6 @@ class Element(element: Node) {
       case None => null
     }
   }
+
+  def getNameSpace: String = element.label
 }

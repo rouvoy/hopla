@@ -14,7 +14,7 @@ class Parser(val fileName: String) {
   // save all sequence element when traverse the xsd file
   lazy val xsdFile = scala.xml.XML.loadFile(fileName)
   // find all element node sequence
-  val element = xsdFile \\ "element"
+  val element = xsdFile
   val elementMap: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
   val elementList: ListBuffer[Element] = new ListBuffer[Element]
 
@@ -27,19 +27,23 @@ class Parser(val fileName: String) {
   def parse() {
     val level = 1
     for (e <- element) {
-      //      println(e)
+//      println(e)
       val elem = new Element(e)
-
-      //      println(elem.getAttributeString("name"))
-      if (!elementMap.contains(elem.getAttributeString("name"))) {
-        elem.level_=(level)
-        elem.root_=(true)
-        val tempNameList = elem.generate
-        tempNameList.foreach {
-          case (key, value) => elementMap.put(key, value)
+      if(elem.getAttributeString("name") == null) {
+        println("Namespace: " + elem.getNameSpace)
+        elem.generate
+      }
+      else {
+        if (!elementMap.contains(elem.getAttributeString("name"))) {
+          elem.level_=(level)
+          elem.root_=(true)
+          val tempNameList = elem.generate
+          tempNameList.foreach {
+            case (key, value) => elementMap.put(key, value)
+          }
+          elementMap.put(elem.getAttributeString("name"), elem)
+          println(elem.getAttributeString("name") + " " + elem.level)
         }
-        elementMap.put(elem.getAttributeString("name"), elem)
-        println(elem.getAttributeString("name") + " " + elem.level)
       }
     }
 
