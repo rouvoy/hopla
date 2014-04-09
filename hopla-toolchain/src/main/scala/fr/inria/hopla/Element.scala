@@ -19,6 +19,8 @@ class Element(element: Node) {
   // important name list who remember all created element during the recursive process generate
   // preventing double generation using dynamic programming
   private val nameList: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
+  private val _xsdAttributes: ListBuffer[String] = new ListBuffer[String]()
+  private val _enum: ListBuffer[Enumeration] = new ListBuffer[Enumeration]()
 
   /**
    * Generate child element from the parent, so their relation can be defined
@@ -27,33 +29,114 @@ class Element(element: Node) {
    */
   def generate: mutable.HashMap[String, Element] = {
     val child = element.child
-//    println(child)
-//    if (!child.equals(null)) {
-      for (e <- child) yield {
-//        println(e)
-        val temp: Element = new Element(e)
-        if(temp.getAttributeString("name") == null) {
-          println("Namespace: " + temp.getNameSpace)
-          temp.parent.++=(this.parent)
-          temp.parent_=(this)
-          temp.level_= (value = level)
-          temp.generate
+    //    println(child)
+    //    if (!child.equals(null)) {
+    for (e <- child) yield {
+      //        println(e)
+      val temp: Element = new Element(e)
+      if (temp.getAttributeString("name") == null) {
+        temp.parent_=(this)
+        temp.level_=(value = level)
+        val tempNameList = temp.generate
+        tempNameList.foreach {
+          case (key, value) => nameList.put(key, value)
         }
-          //        if (!nameList.contains(temp.getAttributeString("name"))) {
-        else {
-          temp.parent.++=:(this.parent)
-          temp.level_=(value = level + 1)
-          val tempNameList = temp.generate
-          tempNameList.foreach {
-            case (key, value) => nameList.put(key, value)
-          }
-          nameList.put(temp.getAttributeString("name"), temp)
-          _child += temp
-          println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getAttributeString("name")))
-          //          println(e)
-                  }
-//      }
+        nameList.put(temp.getNameSpace, temp)
+        _child += temp
+        println("Namespace: " + temp.getNameSpace + " Parent: " + temp.parent(0).getNameSpace)
+      }
+      //        if (!nameList.contains(temp.getAttributeString("name"))) {
+      else {
+        temp.parent_=(this)
+        temp.level_=(value = level + 1)
+        val tempNameList = temp.generate
+        tempNameList.foreach {
+          case (key, value) => nameList.put(key, value)
+        }
+        nameList.put(temp.getAttributeString("name"), temp)
+        _child += temp
+        println("Trait %s %d %s".format(temp.getAttributeString("name"), temp.level, temp.parent(0).getNameSpace))
+        //          println(e)
+      }
+      //      }
     }
+    nameList
+  }
+
+  def generateTo: mutable.HashMap[String, Element] = {
+    val namespace: String = element.label
+    namespace match {
+      case "schema" => {
+        for (child <- element.child) {
+          val elementChild = new Element(child)
+          elementChild.root_=(true)
+          nameList ++= elementChild.generateTo
+        }
+      }
+      case "element" => {
+        if (this.root) {
+          this.level_=(1)
+          this.parent_=(null)
+          nameList.put(this.getAttributeString("name"), this)
+        }
+        else {
+          this.level_=(this.parent.last.level + 1)
+          nameList.put(this.getAttributeString("name"), this)
+        }
+        for (child <- element.child) {
+          val elementChild = new Element(child)
+          elementChild.parent_=(this)
+          nameList ++= elementChild.generateTo
+        }
+      }
+      case "complexType" => {
+        for (p <- this.parent) {
+          p.xsdAttributes_=("complexType")
+        }
+        for (child <- element.child) {
+          val namespace = child.label
+          namespace match {
+            case "sequence" => {
+              for (p <- this.parent) {
+                p.xsdAttributes_=("sequence")
+              }
+              for (grandChild <- child.child) {
+                val elementGrandChild = new Element(grandChild)
+                elementGrandChild.parent ++= this.parent
+                elementGrandChild.level_=(elementGrandChild.parent.last.level)
+                nameList ++= elementGrandChild.generateTo
+              }
+            }
+            case "#PCDATA" => {}
+          }
+        }
+      }
+      case "simpleType" => {
+        for(p <- this.parent) {
+          p.xsdAttributes_=("simpleType")
+        }
+        for(child <- element.child) {
+          val namespace = child.label
+          namespace match {
+            case "restriction" => {
+              for (p <- this.parent) {
+                p.xsdAttributes_=("restriction")
+              }
+              for(grandChild <- child.child) {
+                val enumGrandChild = new Enumeration(grandChild)
+                for(p <- this.parent) {
+                  p.enum_=(enumGrandChild)
+                }
+              }
+            }
+            case "#PCDATA" => {}
+          }
+        }
+      }
+      case "#PCDATA" => {}
+    }
+
+    println(namespace + "........")
     nameList
   }
 
@@ -75,6 +158,14 @@ class Element(element: Node) {
 
   def childs = _child
 
+  def xsdAttributes_=(value: String): Unit = _xsdAttributes += value
+
+  def xsdAttributes = _xsdAttributes
+
+  def enum_=(value: Enumeration): Unit = _enum += value
+
+  def enum = _enum
+
   /**
    * Get all attributes as type of MetaData
    * @return
@@ -94,4 +185,18 @@ class Element(element: Node) {
   }
 
   def getNameSpace: String = element.label
+}
+
+class Enumeration(element: Node) {
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  def getValueString: String = {
+    element.attribute("value") match {
+      case Some(s) => s.toString()
+      case None => null
+    }
+  }
 }

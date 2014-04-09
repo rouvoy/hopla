@@ -26,29 +26,37 @@ class Parser(val fileName: String) {
    */
   def parse() {
     val level = 1
-    for (e <- element) {
-//      println(e)
-      val elem = new Element(e)
-      if(elem.getAttributeString("name") == null) {
-        println("Namespace: " + elem.getNameSpace)
-        elem.generate
-      }
-      else {
-        if (!elementMap.contains(elem.getAttributeString("name"))) {
-          elem.level_=(level)
-          elem.root_=(true)
-          val tempNameList = elem.generate
-          tempNameList.foreach {
-            case (key, value) => elementMap.put(key, value)
-          }
-          elementMap.put(elem.getAttributeString("name"), elem)
-          println(elem.getAttributeString("name") + " " + elem.level)
-        }
-      }
-    }
+    //      println(e)
+    val elem = new Element(element)
+//    if (elem.getAttributeString("name") == null) {
+//      val tempNameList = elem.generate
+//      elem.generateTo
+//      tempNameList.foreach {
+//        case (key, value) => elementMap.put(key, value)
+//      }
+//      //        elementMap.put(elem.getNameSpace, elem)
+//      println("Namespace: " + elem.getNameSpace)
+//    }
+//    else {
+//      if (!elementMap.contains(elem.getAttributeString("name"))) {
+//        elem.level_=(level)
+//        elem.root_=(true)
+//        val tempNameList = elem.generate
+//        tempNameList.foreach {
+//          case (key, value) => elementMap.put(key, value)
+//        }
+//        elementMap.put(elem.getAttributeString("name"), elem)
+//        println(elem.getAttributeString("name") + " " + elem.level)
+//      }
+//    }
+    elementMap ++= elem.generateTo
+
 
     elementMap.foreach {
-      case(key, value) => elementList += value
+      case (key, value) => {
+        println(key + " " + value)
+        elementList += value
+      }
     }
   }
 }
