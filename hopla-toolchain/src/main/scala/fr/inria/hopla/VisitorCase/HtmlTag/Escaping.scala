@@ -13,7 +13,7 @@ object Escaping {
   /**
    * Uses a regex to check if something is a valid tag name.
    */
-  def validTag(s: String) = tagRegex.unapplySeq(s).isDefined
+  def validTag(s: String) = true //tagRegex.unapplySeq(s).isDefined
 
   private[this] val attrNameRegex = "^[a-zA-Z_:][-a-zA-Z0-9_:.]*$".r
 

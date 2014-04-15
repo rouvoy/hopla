@@ -34,26 +34,44 @@ class Element(element: Node) {
         for (child <- element.child) {
           val elementChild = new Element(child)
           elementChild.root_=(true)
-          nameList ++= elementChild.generate
+          val tempList = elementChild.generate
+          tempList.foreach {
+            case (key, value) => {
+              if (!nameList.contains(key)) {
+                nameList.put(key, value)
+              }
+            }
+          }
         }
       }
       case "element" => {
         if (this.root) {
           this.level_=(1)
           this.parent_=(null)
-          nameList.put(this.getAttributeString("name"), this)
+          if (!nameList.contains(this.getAttributeString("name"))) {
+            nameList.put(this.getAttributeString("name"), this)
+          }
         }
         else {
           this.level_=(this.parent.last.level + 1)
           for (p <- this.parent) {
             p.childs_=(this)
           }
-          nameList.put(this.getAttributeString("name"), this)
+          if (!nameList.contains(this.getAttributeString("name"))) {
+            nameList.put(this.getAttributeString("name"), this)
+          }
         }
         for (child <- element.child) {
           val elementChild = new Element(child)
           elementChild.parent_=(this)
-          nameList ++= elementChild.generate
+          val tempList = elementChild.generate
+          tempList.foreach {
+            case (key, value) => {
+              if (!nameList.contains(key)) {
+                nameList.put(key, value)
+              }
+            }
+          }
         }
       }
       case "complexType" => {
@@ -71,7 +89,14 @@ class Element(element: Node) {
                 val elementGrandChild = new Element(grandChild)
                 elementGrandChild.parent ++= this.parent
                 elementGrandChild.level_=(elementGrandChild.parent.last.level)
-                nameList ++= elementGrandChild.generate
+                val tempList = elementGrandChild.generate
+                tempList.foreach {
+                  case (key, value) => {
+                    if (!nameList.contains(key)) {
+                      nameList.put(key, value)
+                    }
+                  }
+                }
               }
             }
             case "#PCDATA" => {}
