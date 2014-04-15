@@ -13,5 +13,9 @@ object HtmlTagTest extends Tags {
       )
     )
     println(res)
+
+    val res1 = body(html("abc"), html("abc"))
+
+    println(res1)
   }
 }
