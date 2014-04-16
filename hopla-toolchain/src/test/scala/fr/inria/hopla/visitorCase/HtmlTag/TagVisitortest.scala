@@ -7,6 +7,6 @@ object TagVisitorTest {
   def main(args: Array[String]) {
     val t = new TagVisitor("address.xsd")
     t.createTagsFromFile()
-    t.passTagsToMemory()
+    t.printAllTags()
   }
 }

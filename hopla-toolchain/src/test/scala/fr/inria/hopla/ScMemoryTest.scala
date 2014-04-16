@@ -12,9 +12,13 @@ object ScMemoryTest {
     val tag = new ScTags(vis.s)
     val tagFun = new ScTagFunction
     val pac = new ScPackage("address")
+    val tagOb = new ScDefTag(tag)
+    val escape = new ScEscapeFun
 
     println(tag.write)
     println(tagFun.write)
     println(pac.write)
+    println(tagOb.write)
+    println(escape.write)
   }
 }
