@@ -75,7 +75,7 @@ object ScFunction {
 }
 
 class ScImport(val name: String) extends ScMemory {
-  def write = "import " + name + ".Tags\nimport scala.collection.SortedMap\n"
+  def write = "import scala.collection.SortedMap\n"
 
   override def toString: String = "Exporting Import"
 }
@@ -118,16 +118,8 @@ class ScDefTag(val tags: ScTags) extends ScMemory{
 
 class ScEscapeFun() extends ScMemory{
   def write: String = {
-   "object Escaping {\n\n  private[this] val tagRegex = \"^[a-z][\\\\w0-9-]*$\".r\n\n  /**\n   * Uses a regex to check if something is a valid tag name.\n   */\n  def validTag(s: String) = true //tagRegex.unapplySeq(s).isDefined\n\n  private[this] val attrNameRegex = \"^[a-zA-Z_:][-a-zA-Z0-9_:.]*$\".r\n\n  /**\n   * Uses a regex to check if something is a valid attribute name.\n   */\n  def validAttrName(s: String) = attrNameRegex.unapplySeq(s).isDefined\n\n  /**\n   * Code to escape text HTML nodes. Taken from scala.xml\n   */\n  def escape(text: String, s: StringBuilder) = {\n    // Implemented per XML spec:\n    // http://www.w3.org/International/questions/qa-controls\n    // imperative code 3x-4x faster than current implementation\n    // dpp (David Pollak) 2010/02/03\n    val len = text.length\n    var pos = 0\n    while (pos < len) {\n      text.charAt(pos) match {\n        case '<' => s.append(\"&lt;\")\n        case '>' => s.append(\"&gt;\")\n        case '&' => s.append(\"&amp;\")\n        case '\"' => s.append(\"&quot;\")\n        case '\\n' => s.append('\\n')\n        case '\\r' => s.append('\\r')\n        case '\\t' => s.append('\\t')\n        case c => if (c >= ' ') s.append(c)\n      }\n\n      pos += 1\n    }\n  }\n}"
+    "object Escaping {\n\n  private[this] val tagRegex = \"^[a-z][\\\\w0-9-]*$\".r\n\n  /**\n   * Uses a regex to check if something is a valid tag name.\n   */\n  def validTag(s: String) = true //tagRegex.unapplySeq(s).isDefined\n\n  private[this] val attrNameRegex = \"^[a-zA-Z_:][-a-zA-Z0-9_:.]*$\".r\n\n  /**\n   * Uses a regex to check if something is a valid attribute name.\n   */\n  def validAttrName(s: String) = attrNameRegex.unapplySeq(s).isDefined\n\n  /**\n   * Code to escape text HTML nodes. Taken from scala.xml\n   */\n  def escape(text: String, s: StringBuilder) = {\n    // Implemented per XML spec:\n    // http://www.w3.org/International/questions/qa-controls\n    // imperative code 3x-4x faster than current implementation\n    // dpp (David Pollak) 2010/02/03\n    val len = text.length\n    var pos = 0\n    while (pos < len) {\n      text.charAt(pos) match {\n        case '<' => s.append(\"&lt;\")\n        case '>' => s.append(\"&gt;\")\n        case '&' => s.append(\"&amp;\")\n        case '\"' => s.append(\"&quot;\")\n        case '\\n' => s.append('\\n')\n        case '\\r' => s.append('\\r')\n        case '\\t' => s.append('\\t')\n        case c => if (c >= ' ') s.append(c)\n      }\n\n      pos += 1\n    }\n  }\n}"
   }
 
   override def toString: String = "Exporting Escape Funtion definition\n"
-}
-
-class ScTestCase extends ScMemory {
-  def write: String = {
-    "\n\nobject Test extends Tags {\n  def main(args: Array[String]) {\n    val res = Address(Recipient(\"abc\"), House(\"123\"), Street(\"Rue\"))\n\n    println(res)\n  }\n}"
-  }
-
-  override def toString: String = "Exporting test case"
 }

@@ -7,7 +7,7 @@ package fr.inria.hopla
  */
 object VisitorTest {
   def main(args: Array[String]) {
-    val VisitorBeta = new Visitor("personne.xsd")
+    val VisitorBeta = new Visitor("address.xsd")
     VisitorBeta.visitByLevel(1)
   }
 }

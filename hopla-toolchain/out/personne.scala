@@ -1,4 +1,3 @@
-import personne.Tags
 import scala.collection.SortedMap
 
 package object personne {
@@ -82,8 +81,8 @@ package object personne {
     val date_naissance = "date_naissance".tag
     val nom = "nom".tag
     val num_tel = "num_tel".tag
-    val personne = "personne".tag
     val prenom = "prenom".tag
+    val personne = "personne".tag
 
   }
 
@@ -149,18 +148,4 @@ package object personne {
     }
   }
 
-}
-
-object Test1 extends Tags {
-  def main(args: Array[String]) {
-    val res = personne(
-      nom("jin"),
-      prenom("benli"),
-      etablissement("inria"),
-      date_naissance("19910525"),
-      num_tel("123456")
-    )
-
-    println(res)
-  }
 }

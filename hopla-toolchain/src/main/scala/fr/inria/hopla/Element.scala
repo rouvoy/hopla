@@ -1,6 +1,6 @@
 package fr.inria.hopla
 
-import scala.xml.Node
+import scala.xml.{MetaData, Node}
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 
@@ -11,7 +11,13 @@ import scala.collection.mutable
  * the original file, called by Parser and can be accessed by Any Type of visitor
  *
  */
-class Element(element: Node) {
+
+trait Xsd {
+  def getAttributes: MetaData
+  def getAttributeString(s: String): String
+}
+
+class Element(element: Node) extends Xsd{
   private val _parent: ListBuffer[Element] = new ListBuffer[Element]()
   private val _child: ListBuffer[Element] = new ListBuffer[Element]()
   private var _level = 0
@@ -30,21 +36,19 @@ class Element(element: Node) {
   def generate: mutable.HashMap[String, Element] = {
     val namespace: String = element.label
     namespace match {
-      case "schema" => {
+      case "schema" =>
         for (child <- element.child) {
           val elementChild = new Element(child)
-          elementChild.root_=(true)
+          elementChild.root_=(value = true)
           val tempList = elementChild.generate
           tempList.foreach {
-            case (key, value) => {
+            case (key, value) =>
               if (!nameList.contains(key)) {
                 nameList.put(key, value)
               }
-            }
           }
         }
-      }
-      case "element" => {
+      case "element" =>
         if (this.root) {
           this.level_=(1)
           this.parent_=(null)
@@ -66,51 +70,46 @@ class Element(element: Node) {
           elementChild.parent_=(this)
           val tempList = elementChild.generate
           tempList.foreach {
-            case (key, value) => {
-              if (!nameList.contains(key)) {
-                nameList.put(key, value)
-              }
-            }
+            case (key, value) =>
+              if (!nameList.contains(key)) nameList.put(key, value)
           }
         }
-      }
-      case "complexType" => {
+      case "complexType" =>
         for (p <- this.parent) {
           p.xsdAttributes_=("complexType")
         }
         for (child <- element.child) {
           val namespace = child.label
           namespace match {
-            case "sequence" => {
+            case "sequence" =>
               for (p <- this.parent) {
                 p.xsdAttributes_=("sequence")
               }
               for (grandChild <- child.child) {
-                val elementGrandChild = new Element(grandChild)
+                val elementGrandChild: Element = new Element(grandChild)
                 elementGrandChild.parent ++= this.parent
                 elementGrandChild.level_=(elementGrandChild.parent.last.level)
                 val tempList = elementGrandChild.generate
                 tempList.foreach {
-                  case (key, value) => {
+                  case (key, value) =>
                     if (!nameList.contains(key)) {
                       nameList.put(key, value)
                     }
-                  }
                 }
               }
-            }
-            case "#PCDATA" => {}
+            case "attribute" => // TODO
+            case "all" => // TODO
+            case "#PCDATA" =>
           }
         }
-      }
-      case "simpleType" => {
+      case "simpleType" =>
         for (p <- this.parent) {
           p.xsdAttributes_=("simpleType")
         }
         for (child <- element.child) {
           val namespace = child.label
           namespace match {
-            case "restriction" => {
+            case "restriction" =>
               for (p <- this.parent) {
                 p.xsdAttributes_=("restriction")
               }
@@ -120,12 +119,29 @@ class Element(element: Node) {
                   p.enum_=(enumGrandChild)
                 }
               }
-            }
-            case "#PCDATA" => {}
+            case "#PCDATA" =>
           }
         }
-      }
-      case "#PCDATA" => {}
+      case "#PCDATA" =>
+
+      case "annotation" =>
+
+      case "documentation" =>
+
+      case "unique" =>
+
+      case "selector" =>
+
+      case "field" =>
+
+      case "key" =>
+
+      case "keyref" =>
+
+      case "attribute" =>
+
+      case _ =>
+
     }
     nameList
   }
@@ -160,16 +176,16 @@ class Element(element: Node) {
    * Get all attributes as type of MetaData
    * @return
    */
-  def getAttributes = element.attributes
+  override def getAttributes = element.attributes
 
   /**
    * Get attribute by name and return its string as result
    * @param s given argument
    * @return
    */
-  def getAttributeString(s: String): String = {
+  override def getAttributeString(s: String): String = {
     element.attribute(s) match {
-      case Some(s) => s.toString()
+      case Some(nodes) => nodes.toString()
       case None => null
     }
   }
@@ -177,15 +193,23 @@ class Element(element: Node) {
   def getNameSpace: String = element.label
 }
 
-class Enumeration(element: Node) {
+class Enumeration(element: Node) extends Xsd{
   /**
    * Get attribute by name and return its string as result
-   * @param s given argument
    * @return
    */
   def getValueString: String = {
     element.attribute("value") match {
       case Some(s) => s.toString()
+      case None => null
+    }
+  }
+
+  override def getAttributes: MetaData = element.attributes
+
+  override def getAttributeString(s: String): String = {
+    element.attribute(s) match {
+      case Some(nodes) => nodes.toString()
       case None => null
     }
   }

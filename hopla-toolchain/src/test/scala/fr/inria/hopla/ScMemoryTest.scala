@@ -1,6 +1,5 @@
 package fr.inria.hopla
 
-import fr.inria.hopla.visitorCase.HtmlTag.TagVisitor
 import java.io.PrintWriter
 
 /**
@@ -19,12 +18,11 @@ object ScMemoryTest {
 
     val imp = new ScImport("personne")
     val pac = new ScPackage("personne", list)
-    val test = new ScTestCase
 
-    println(imp.write + pac.write + test.write)
+    println(imp.write + pac.write)
 
     val out = new PrintWriter("hopla-toolchain/out/personne.scala")
-    out.println(imp.write + pac.write + test.write)
+    out.println(imp.write + pac.write)
     out.close()
   }
 }
