@@ -12,14 +12,30 @@ import scala.collection.mutable
  *
  */
 
-trait Xsd {
+trait Schema {
   def getAttributes: MetaData
+
   def getAttributeString(s: String): String
 }
 
-class Element(element: Node) extends Xsd{
+
+trait SimpleType extends Schema {
+  def getName = getAttributeString("name")
+}
+
+
+trait ComplexType extends Schema {
+  def getName = getAttributeString("name")
+
+  private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
+
+  def childs_=(value: Schema): Unit = _child += value
+
+  def childs = _child
+}
+
+case class Element(element: Node) extends SimpleType with ComplexType {
   private val _parent: ListBuffer[Element] = new ListBuffer[Element]()
-  private val _child: ListBuffer[Element] = new ListBuffer[Element]()
   private var _level = 0
   private var _root = false
   // important name list who remember all created element during the recursive process generate
@@ -160,10 +176,6 @@ class Element(element: Node) extends Xsd{
 
   def parent = _parent
 
-  def childs_=(value: Element): Unit = _child += value
-
-  def childs = _child
-
   def xsdAttributes_=(value: String): Unit = _xsdAttributes += value
 
   def xsdAttributes = _xsdAttributes
@@ -171,6 +183,8 @@ class Element(element: Node) extends Xsd{
   def enum_=(value: Enumeration): Unit = _enum += value
 
   def enum = _enum
+
+  def getNameSpace: String = element.label
 
   /**
    * Get all attributes as type of MetaData
@@ -189,26 +203,206 @@ class Element(element: Node) extends Xsd{
       case None => null
     }
   }
-
-  def getNameSpace: String = element.label
 }
 
-class Enumeration(element: Node) extends Xsd{
+case class Attribute(attr: Node) extends SimpleType {
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = attr.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    attr.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+}
+
+abstract case class Restriction(res: Node) extends SimpleType {
+  def getBase = getAttributeString("base")
+
+  private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
+
+  def childs_=(value: Schema): Unit = _child += value
+
+  def childs = _child
+
+  def generate() {
+    val child = res.child
+    for (c <- child) {
+      val label = c.label
+      label match {
+        case "minInclusive" =>
+          if (getBase != "xs:integer" && getBase != "xs:decimal") throw new IllegalArgumentException("Restriction base isn't numeric!")
+          else childs_=(new NumericRestriction(c))
+        case "minExclusive" =>
+          if (getBase != "xs:integer" && getBase != "xs:decimal") throw new IllegalArgumentException("Restriction base isn't numeric!")
+          else childs_=(new NumericRestriction(c))
+        case "maxInclusive" =>
+          if (getBase != "xs:integer" && getBase != "xs:decimal") throw new IllegalArgumentException("Restriction base isn't numeric!")
+          else childs_=(new NumericRestriction(c))
+        case "maxExclusive" =>
+          if (getBase != "xs:integer" && getBase != "xs:decimal") throw new IllegalArgumentException("Restriction base isn't numeric!")
+          else childs_=(new NumericRestriction(c))
+        case "enumeration" =>
+          childs_=(new Enumeration(c))
+
+        case "pattern" =>
+        //TODO
+      }
+    }
+
+
+  }
+
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = res.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    res.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+}
+
+case class Enumeration(enum: Node) extends Restriction(enum: Node) {
   /**
    * Get attribute by name and return its string as result
    * @return
    */
   def getValueString: String = {
-    element.attribute("value") match {
+    enum.attribute("value") match {
       case Some(s) => s.toString()
       case None => null
     }
   }
+}
 
-  override def getAttributes: MetaData = element.attributes
+class NumericRestriction(nr: Node) extends Restriction(nr: Node) {
 
+
+  def apply(num: BigDecimal): Boolean = {
+
+    val operator = nr.label
+    val number = BigDecimal(getAttributeString("value"))
+    operator match {
+      case "maxExclusive" => num < number
+      case "maxInclusive" => num <= number
+      case "minExclusive" => num > number
+      case "minInclusive" => num >= number
+      case _ => false
+    }
+  }
+}
+
+case class List(list: Node) extends SimpleType {
+  def getItemType = getAttributeString("itemType")
+
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = list.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
   override def getAttributeString(s: String): String = {
-    element.attribute(s) match {
+    list.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+}
+
+case class Union(union: Node) extends SimpleType {
+  def getMemberTypes = getAttributeString("memberTypes").split(" ")
+
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = union.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    union.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+}
+
+case class Sequence(seq: Node) extends ComplexType {
+
+  def generate() {
+    for(c <- seq.child) {
+      childs_=(new Element(c))
+    }
+  }
+
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = seq.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    seq.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+}
+
+case class Choice(choice: Node) extends ComplexType {
+
+  def generate() {
+    for(c <- choice.child) {
+      childs_=(new Element(c))
+    }
+  }
+
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = choice.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    choice.attribute(s) match {
       case Some(nodes) => nodes.toString()
       case None => null
     }
