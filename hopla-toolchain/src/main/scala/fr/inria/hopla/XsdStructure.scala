@@ -2,7 +2,6 @@ package fr.inria.hopla
 
 import scala.xml.{MetaData, Node}
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -37,6 +36,68 @@ case class Attribute(attr: Node) extends Schema {
       case Some(nodes) => nodes.toString()
       case None => null
     }
+  }
+}
+
+case class AttributesGroup(node: Node) extends Schema {
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = node.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    node.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+  def getAttributeGroup = {
+    val attributesList: ListBuffer[Attribute] = new ListBuffer[Attribute]
+    for(child <- node.child) {
+      attributesList += new Attribute(child)
+    }
+    attributesList.toList
+  }
+}
+
+case class Group(node: Node) extends Schema {
+  /**
+   * Get all attributes as type of MetaData
+   * @return
+   */
+  override def getAttributes = node.attributes
+
+  /**
+   * Get attribute by name and return its string as result
+   * @param s given argument
+   * @return
+   */
+  override def getAttributeString(s: String): String = {
+    node.attribute(s) match {
+      case Some(nodes) => nodes.toString()
+      case None => null
+    }
+  }
+  def getGroup = {
+    val firstChild = node.child(0)
+    val label = firstChild.label
+    val elemBuffer: ListBuffer[Schema] = new ListBuffer[Schema]
+    label match {
+      case "sequence" =>
+        val seq = new Sequence(firstChild)
+        elemBuffer ++= seq.childs
+      case "choice" =>
+        val choice = new Choice(firstChild)
+        elemBuffer ++= choice.childs.toList
+      case _ => null
+    }
+    elemBuffer.toList
   }
 }
 

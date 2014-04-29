@@ -3,6 +3,7 @@ package fr.inria.hopla
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 import scala.xml.Node
+import javax.xml.validation.Schema
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -21,6 +22,9 @@ class Parser(val fileName: String) {
 
   val simpleTypeMap: mutable.HashMap[String, SimpleType] = new mutable.HashMap[String, SimpleType]()
   val complexTypesMap: mutable.HashMap[String, ComplexType] = new mutable.HashMap[String, ComplexType]()
+  val attributesGroupMap: mutable.HashMap[String, AttributesGroup] = new mutable.HashMap[String, AttributesGroup]()
+  val groupMap: mutable.HashMap[String, Group] = new mutable.HashMap[String, Group]()
+  val attributeMap: mutable.HashMap[String, Attribute] = new mutable.HashMap[String, Attribute]()
 
   /**
   /**
@@ -49,6 +53,16 @@ class Parser(val fileName: String) {
         for (child <- node.child) {
           parse(child)
         }
+      case "attributeGroup" =>
+        val attrsG = new AttributesGroup(node)
+        attributesGroupMap.put(attrsG.getName, attrsG)
+        val attrsList = attrsG.getAttributeGroup
+        attrsList.foreach(att => attributeMap.put(att.getName, att.asInstanceOf))
+      case "group" =>
+        val group = new Group(node)
+        groupMap.put(group.getName, group)
+        val elemList = group.getGroup
+        elemList.foreach(elem => elementMap.put(elem.getName, elem.asInstanceOf))
       case "simpleType" =>
         val s = new SimpleType(node)
         simpleTypeMap.put(s.getName, s)
@@ -58,8 +72,10 @@ class Parser(val fileName: String) {
       case "element" =>
         val elem = new Element(node)
         elementMap.put(elem.getName, elem)
-
-
+      case "attribute" =>
+        val att = new Attribute(node)
+        attributeMap.put(att.getName, att)
+      case _ =>
 
     }
 
