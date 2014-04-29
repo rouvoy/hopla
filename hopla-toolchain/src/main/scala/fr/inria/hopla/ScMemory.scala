@@ -1,5 +1,7 @@
 package fr.inria.hopla
 
+import scala.collection.immutable
+
 /**
  * Created by JIN benli on 05/03/14.
  *
@@ -9,7 +11,7 @@ trait ScMemory {
   def write: String
 }
 
-abstract class ScClass(value: List[Any]) {
+abstract class ScClass(value: immutable.List[Any]) {
   var pos: Int
 
   def write = this.toString
@@ -17,19 +19,19 @@ abstract class ScClass(value: List[Any]) {
   def getPos = pos
 }
 
-case class ScName(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScName(value: immutable.List[Any]) extends ScClass(value: immutable.List[Any]) {
   override var pos = 1
 
   override def toString = "class " + value(0)
 }
 
-case class ScVariable(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScVariable(value: immutable.List[Any]) extends ScClass(value: immutable.List[Any]) {
   override var pos = 2
 
   override def toString = ""
 }
 
-case class ScParam(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScParam(value: immutable.List[Any]) extends ScClass(value: immutable.List[Any]) {
   override var pos = 3
   val typeName = value(0) match {
     case "xs:string" => "s: String"
@@ -39,7 +41,7 @@ case class ScParam(value: List[Any]) extends ScClass(value: List[Any]) {
   override def toString = typeName
 }
 
-case class ScBody(value: List[Any]) extends ScClass(value: List[Any]) {
+case class ScBody(value: immutable.List[Any]) extends ScClass(value: immutable.List[Any]) {
   override var pos = 4
   var s: StringBuilder = new StringBuilder()
   val funName = value(0).toString
@@ -47,7 +49,7 @@ case class ScBody(value: List[Any]) extends ScClass(value: List[Any]) {
   for (i <- 1 to value.length - 1) {
     value(i) match {
       case num: Int => s ++= value(i).toString
-      case list: List[Element] =>
+      case list: immutable.List[Element] =>
         if (!list.isEmpty) {
           s ++= "["
           for (l <- list if !l.equals(list.last)) {
@@ -66,7 +68,7 @@ case class ScBody(value: List[Any]) extends ScClass(value: List[Any]) {
 }
 
 object ScFunction {
-  def apply(kind: String, value: List[Any]) = kind match {
+  def apply(kind: String, value: immutable.List[Any]) = kind match {
     case "name" => new ScName(value)
     case "param" => new ScParam(value)
     case "body" => new ScBody(value)
@@ -86,7 +88,7 @@ class ScTags(val buffer: StringBuilder) extends ScMemory{
   override def toString: String = "Exporting Tags\n"
 }
 
-class ScPackage(val name: String, val scList: List[ScMemory]) extends ScMemory {
+class ScPackage(val name: String, val scList: immutable.List[ScMemory]) extends ScMemory {
   def write: String = {
     val buffer: StringBuilder = new StringBuilder
     buffer ++= "package object " ++= name ++= "{\n\n  "

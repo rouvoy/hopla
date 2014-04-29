@@ -3,7 +3,6 @@ package fr.inria.hopla
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 import scala.xml.Node
-import javax.xml.validation.Schema
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -46,12 +45,16 @@ class Parser(val fileName: String) {
   }
     */
 
-  def parse(node: Node) {
+  def parse() {
+    parser(element)
+  }
+
+  def parser(node: Node) {
     val label: String = node.label
     label match {
       case "schema" =>
         for (child <- node.child) {
-          parse(child)
+          parser(child)
         }
       case "attributeGroup" =>
         val attrsG = new AttributesGroup(node)
@@ -76,8 +79,6 @@ class Parser(val fileName: String) {
         val att = new Attribute(node)
         attributeMap.put(att.getName, att)
       case _ =>
-
     }
-
   }
 }

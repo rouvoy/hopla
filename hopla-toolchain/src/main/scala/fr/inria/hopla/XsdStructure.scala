@@ -195,6 +195,15 @@ case class Element(element: Node) extends Schema {
   private var _level = 0
   private var _root = false
 
+  private var _ref = false
+
+  override def getName = {
+    if(getAttributeString("name") == null)
+      getAttributeString("ref")
+    else
+      getAttributeString("name")
+  }
+
   // Setter
   def level_=(value: Int): Unit = _level = value
 
@@ -204,6 +213,10 @@ case class Element(element: Node) extends Schema {
   def root_=(value: Boolean): Unit = _root = value
 
   def root = _root
+
+  def ref_=(value: Boolean): Unit = _ref = value
+
+  def ref = _ref
 
   def getNameSpace: String = element.label
 
@@ -225,13 +238,51 @@ case class Element(element: Node) extends Schema {
     }
   }
 
-  def generate() {
+  def handle() {
+    if(getAttributeString("ref")!=null) {
 
+    }
+  }
+
+  def hasChild = !element.child.isEmpty
+
+  def getNode = element
+
+  class InternalComplexType(node: Node) extends Element(node: Node) {
+    override def getName = null
+
+    private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
+
+    def childs_=(value: Schema): Unit = _child += value
+
+    def childs = _child
+
+    def getType = {
+      for(c <- node.child) {
+        val label = c.label
+        label match {
+          case "sequence" =>
+            val seq = new Sequence(c)
+            childs_=(seq)
+          case "choice" =>
+            val choice = new Choice(c)
+            childs_=(choice)
+          case "attribute" =>
+            val attr = new Attribute(c)
+            childs_=(attr)
+          case "element" =>
+            val elem = new Element(c)
+            childs_=(elem)
+          case _ =>
+        }
+      }
+      childs.toList
+    }
   }
 }
 
 
-case class Restriction(res: Node) extends SimpleType(res: Node) {
+class Restriction(res: Node) extends SimpleType(res: Node) {
   def getBase = getAttributeString("base")
 
   private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
@@ -269,7 +320,7 @@ case class Restriction(res: Node) extends SimpleType(res: Node) {
   }
 }
 
-case class Enumeration(enum: Node) extends Restriction(enum: Node) {
+class Enumeration(enum: Node) extends Restriction(enum: Node) {
   /**
    * Get attribute by name and return its string as result
    * @return
@@ -299,15 +350,15 @@ class NumericRestriction(nr: Node) extends Restriction(nr: Node) {
   }
 }
 
-case class List(list: Node) extends SimpleType(list: Node) {
+class List(list: Node) extends SimpleType(list: Node) {
   def getItemType = getAttributeString("itemType")
 }
 
-case class Union(union: Node) extends SimpleType(union: Node) {
+class Union(union: Node) extends SimpleType(union: Node) {
   def getMemberTypes = getAttributeString("memberTypes").split(" ")
 }
 
-case class Sequence(seq: Node) extends ComplexType(seq: Node) {
+class Sequence(seq: Node) extends ComplexType(seq: Node) {
 
   def generate() {
     for(c <- seq.child) {
@@ -316,7 +367,7 @@ case class Sequence(seq: Node) extends ComplexType(seq: Node) {
   }
 }
 
-case class Choice(choice: Node) extends ComplexType(choice: Node) {
+class Choice(choice: Node) extends ComplexType(choice: Node) {
 
   def generate() {
     for(c <- choice.child) {
