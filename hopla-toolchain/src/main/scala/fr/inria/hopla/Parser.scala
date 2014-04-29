@@ -2,6 +2,7 @@ package fr.inria.hopla
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
+import scala.xml.Node
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -18,6 +19,10 @@ class Parser(val fileName: String) {
   val elementMap: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
   val elementList: ListBuffer[Element] = new ListBuffer[Element]
 
+  val simpleTypeMap: mutable.HashMap[String, SimpleType] = new mutable.HashMap[String, SimpleType]()
+  val complexTypesMap: mutable.HashMap[String, ComplexType] = new mutable.HashMap[String, ComplexType]()
+
+  /**
   /**
    * Set the first element as root, creating all element from the root, using
    * ListBuffer temp for storing child list for every iteration of generation,
@@ -34,5 +39,29 @@ class Parser(val fileName: String) {
         elementList += value
       }
     }
+  }
+    */
+
+  def parse(node: Node) {
+    val label: String = node.label
+    label match {
+      case "schema" =>
+        for (child <- node.child) {
+          parse(child)
+        }
+      case "simpleType" =>
+        val s = new SimpleType(node)
+        simpleTypeMap.put(s.getName, s)
+      case "complexType" =>
+        val c = new ComplexType(node)
+        complexTypesMap.put(c.getName, c)
+      case "element" =>
+        val elem = new Element(node)
+        elementMap.put(elem.getName, elem)
+
+
+
+    }
+
   }
 }
