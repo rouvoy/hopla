@@ -74,6 +74,7 @@ class Parser(val fileName: String) {
         complexTypesMap.put(c.getName, c)
       case "element" =>
         val elem = new Element(node)
+        elem.handle()
         elementMap.put(elem.getName, elem)
       case "attribute" =>
         val att = new Attribute(node)

@@ -1,7 +1,8 @@
 package fr.inria.hopla
 
 import scala.xml.{MetaData, Node}
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable._
+import scala.Some
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -197,12 +198,19 @@ case class Element(element: Node) extends Schema {
 
   private var _ref = false
 
+  private val interComplexTypes: ListBuffer[InternalComplexType] = new ListBuffer[InternalComplexType]
+  private val interSimpleType: ListBuffer[InternalSimpleType] = new ListBuffer[InternalSimpleType]
+  private val interAttributes: ListBuffer[Attribute] = new ListBuffer[Attribute]
+
+
   override def getName = {
-    if(getAttributeString("name") == null)
-      getAttributeString("ref")
+    if(ref == true)
+      throw new IllegalArgumentException("This is not a element declaration, but a reference")
     else
       getAttributeString("name")
   }
+
+  def getRefName = getAttributeString("ref")
 
   // Setter
   def level_=(value: Int): Unit = _level = value
@@ -239,8 +247,25 @@ case class Element(element: Node) extends Schema {
   }
 
   def handle() {
-    if(getAttributeString("ref")!=null) {
+    if (getAttributeString("ref") != null) {
+      ref_=(true)
+    }
 
+    //TODO type is an external declaration, how to handle
+
+    if(hasChild) for(child: Node <- element) {
+      val label = child.label
+      label match {
+        case "complexType" =>
+          val ict = new InternalComplexType(child)
+          interComplexTypes += ict
+        case "simpleType" =>
+          val ist = new InternalSimpleType(child)
+          interSimpleType += ist
+        case "attribute" =>
+          val ia = new Attribute(child)
+          interAttributes += ia
+      }
     }
   }
 
@@ -249,7 +274,7 @@ case class Element(element: Node) extends Schema {
   def getNode = element
 
   class InternalComplexType(node: Node) extends Element(node: Node) {
-    override def getName = null
+    override def getName = "Internal ComplexType"
 
     private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
 
@@ -263,20 +288,45 @@ case class Element(element: Node) extends Schema {
         label match {
           case "sequence" =>
             val seq = new Sequence(c)
+            level_=(value = level.+(seq.getElementNumber))
             childs_=(seq)
           case "choice" =>
             val choice = new Choice(c)
+            level_=(value = level.+(choice.getElementNumber))
             childs_=(choice)
           case "attribute" =>
             val attr = new Attribute(c)
             childs_=(attr)
           case "element" =>
             val elem = new Element(c)
+            level_=(value = level.+(1))
             childs_=(elem)
           case _ =>
         }
       }
       childs.toList
+    }
+  }
+
+  class InternalSimpleType(node: Node) extends Element(node: Node) {
+    override def getName = "InternalSimpleType"
+
+    def getType: SimpleType = {
+      val firstChild = node.child(0)
+      val label = firstChild.label
+      label match {
+        case "restriction" =>
+          val res = new Restriction(firstChild)
+          res.generate()
+          res
+        case "list" =>
+          val list = new List(firstChild)
+          list
+        case "Union" =>
+          val union = new Union(firstChild)
+          union
+        case _ => null
+      }
     }
   }
 }
@@ -312,7 +362,7 @@ class Restriction(res: Node) extends SimpleType(res: Node) {
           childs_=(new Enumeration(c))
 
         case "pattern" =>
-        //TODO
+        //TODO more cases
       }
     }
 
@@ -359,19 +409,25 @@ class Union(union: Node) extends SimpleType(union: Node) {
 }
 
 class Sequence(seq: Node) extends ComplexType(seq: Node) {
+  def getElementNumber = childs.size
 
   def generate() {
     for(c <- seq.child) {
-      childs_=(new Element(c))
+      val e = new Element(c)
+      e.handle()
+      childs_=(e)
     }
   }
 }
 
 class Choice(choice: Node) extends ComplexType(choice: Node) {
+  def getElementNumber = childs.size
 
   def generate() {
     for(c <- choice.child) {
-      childs_=(new Element(c))
+      val e = new Element(c)
+      e.handle()
+      childs_=(e)
     }
   }
 }
