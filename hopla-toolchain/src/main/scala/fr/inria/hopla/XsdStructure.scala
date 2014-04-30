@@ -1,6 +1,6 @@
 package fr.inria.hopla
 
-import scala.xml.{MetaData, Node}
+import scala.xml.{Elem, MetaData, Node}
 import scala.collection.mutable._
 import scala.Some
 
@@ -58,9 +58,10 @@ case class AttributesGroup(node: Node) extends Schema {
       case None => null
     }
   }
+
   def getAttributeGroup = {
     val attributesList: ListBuffer[Attribute] = new ListBuffer[Attribute]
-    for(child <- node.child) {
+    for (child <- node.child) {
       attributesList += new Attribute(child)
     }
     attributesList.toList
@@ -85,6 +86,7 @@ case class Group(node: Node) extends Schema {
       case None => null
     }
   }
+
   def getGroup = {
     val firstChild = node.child(0)
     val label = firstChild.label
@@ -96,7 +98,9 @@ case class Group(node: Node) extends Schema {
       case "choice" =>
         val choice = new Choice(firstChild)
         elemBuffer ++= choice.childs.toList
-      case _ => null
+      case _ =>
+        println("Group " + label)
+        null
     }
     elemBuffer.toList
   }
@@ -136,7 +140,9 @@ case class SimpleType(node: Node) extends Schema {
       case "Union" =>
         val union = new Union(firstChild)
         union
-      case _ => null
+      case _ =>
+        println("SimpleType " + label)
+        null
     }
   }
 }
@@ -170,7 +176,7 @@ case class ComplexType(node: Node) extends Schema {
   }
 
   def getType = {
-    for(c <- node.child) {
+    for (c <- node.child) {
       val label = c.label
       label match {
         case "sequence" =>
@@ -186,6 +192,7 @@ case class ComplexType(node: Node) extends Schema {
           val elem = new Element(c)
           childs_=(elem)
         case _ =>
+          println("ComplexType " + label)
       }
     }
     childs.toList
@@ -204,7 +211,7 @@ case class Element(element: Node) extends Schema {
 
 
   override def getName = {
-    if(ref == true)
+    if (ref == true)
       throw new IllegalArgumentException("This is not a element declaration, but a reference")
     else
       getAttributeString("name")
@@ -253,7 +260,7 @@ case class Element(element: Node) extends Schema {
 
     //TODO type is an external declaration, how to handle
 
-    if(hasChild) for(child: Node <- element) {
+    for (child <- element.child) {
       val label = child.label
       label match {
         case "complexType" =>
@@ -265,6 +272,8 @@ case class Element(element: Node) extends Schema {
         case "attribute" =>
           val ia = new Attribute(child)
           interAttributes += ia
+        case "#PCDATA" =>
+        case _ => println("Element " + label)
       }
     }
   }
@@ -283,7 +292,7 @@ case class Element(element: Node) extends Schema {
     def childs = _child
 
     def getType = {
-      for(c <- node.child) {
+      for (c <- node.child) {
         val label = c.label
         label match {
           case "sequence" =>
@@ -301,7 +310,7 @@ case class Element(element: Node) extends Schema {
             val elem = new Element(c)
             level_=(value = level.+(1))
             childs_=(elem)
-          case _ =>
+          case _ => println("Element InternalComplexType " + label)
         }
       }
       childs.toList
@@ -325,10 +334,13 @@ case class Element(element: Node) extends Schema {
         case "Union" =>
           val union = new Union(firstChild)
           union
-        case _ => null
+        case _ =>
+          println("Element InternalSimpleType " + label)
+          null
       }
     }
   }
+
 }
 
 
@@ -360,8 +372,8 @@ class Restriction(res: Node) extends SimpleType(res: Node) {
           else childs_=(new NumericRestriction(c))
         case "enumeration" =>
           childs_=(new Enumeration(c))
+        case _ => println("Restriction " + label)
 
-        case "pattern" =>
         //TODO more cases
       }
     }
@@ -412,7 +424,7 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
   def getElementNumber = childs.size
 
   def generate() {
-    for(c <- seq.child) {
+    for (c <- seq.child) {
       val e = new Element(c)
       e.handle()
       childs_=(e)
@@ -424,7 +436,7 @@ class Choice(choice: Node) extends ComplexType(choice: Node) {
   def getElementNumber = childs.size
 
   def generate() {
-    for(c <- choice.child) {
+    for (c <- choice.child) {
       val e = new Element(c)
       e.handle()
       childs_=(e)

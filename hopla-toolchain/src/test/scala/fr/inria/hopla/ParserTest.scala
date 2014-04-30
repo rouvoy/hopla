@@ -14,15 +14,23 @@ class ParserTest {
     parser.parse()
 
     assertTrue(!parser.elementMap.isEmpty)
+    println("- Elements: ")
     parser.elementMap.foreach {
       case (key, value) => println(key)
     }
 
+    println("\n- Attributes: ")
     parser.attributeMap.foreach {
       case (key, value) => println(key)
     }
 
+    println("\n- ComplexTypes: ")
     parser.complexTypesMap.foreach {
+      case (key, value) => println(key)
+    }
+
+    println("\n- SimpleTypes:")
+    parser.simpleTypeMap.foreach {
       case (key, value) => println(key)
     }
   }

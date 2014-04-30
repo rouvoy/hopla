@@ -2,7 +2,7 @@ package fr.inria.hopla
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -27,11 +27,11 @@ class Parser(val fileName: String) {
 
   /**
   /**
-   * Set the first element as root, creating all element from the root, using
-   * ListBuffer temp for storing child list for every iteration of generation,
-   * Initially the temp should be empty so we can figure out where is the root
-   *
-   */
+    * Set the first element as root, creating all element from the root, using
+    * ListBuffer temp for storing child list for every iteration of generation,
+    * Initially the temp should be empty so we can figure out where is the root
+    *
+    */
   def parse() {
     //      println(e)
     val elem = new Element(element)
@@ -55,6 +55,7 @@ class Parser(val fileName: String) {
       case "schema" =>
         for (child <- node.child) {
           parser(child)
+          //          println(child)
         }
       case "attributeGroup" =>
         val attrsG = new AttributesGroup(node)
@@ -79,7 +80,9 @@ class Parser(val fileName: String) {
       case "attribute" =>
         val att = new Attribute(node)
         attributeMap.put(att.getName, att)
+      case "#PCDATA" =>
       case _ =>
+        println("Parser " + label)
     }
   }
 }
