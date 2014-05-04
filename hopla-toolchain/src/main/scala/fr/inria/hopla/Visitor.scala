@@ -1,30 +1,28 @@
-//package fr.inria.hopla
-//
-//import scala.collection.mutable.ListBuffer
-//
-///**
-//* Created by JIN Benli on 26/03/14.
-//*/
-//trait VisitorMode {
-//  val parser: Parser
-//}
-//
-//class Visitor(val fileName: String) extends VisitorMode {
-//
-//  val parser: Parser = new Parser(fileName)
-//  parser.parse()
-//
-//  def visitByLevel(level: Int) {
-//    println("\n**Begin to visit level " + level + " parents\n")
-//    for (p <- parser.elementList) {
-//      if (p.level == level) {
-//        println("Visiting " + p.getAttributeString("name") + " Level = " + p.level + "\n")
-//        if (p.childs.nonEmpty)
-//          visitChild(p.childs)
-//      }
-//    }
-//  }
-//
+package fr.inria.hopla
+
+/**
+ * Created by JIN Benli on 26/03/14.
+ */
+trait Visitor {
+  val parser: Parser
+}
+
+class LevelVisitor(val fileName: String) extends Visitor {
+
+  val parser: Parser = new Parser(fileName)
+  parser.parse()
+
+  def visitByLevel() {
+    for (p <- parser.elementList) {
+      if(p.ref) {
+        println("Visiting reference element to element: " + p.getAttributeString("name") + " Level = " + p.level + "\n")
+      }
+      else {
+        println("Visiting element: " + p.getAttributeString("name" + " Level = " + p.level + "\n"))
+      }
+    }
+  }
+
 //  def visitChild(childList: ListBuffer[Element]) {
 //    for (c <- childList) {
 //      println("Visiting " + c.getAttributeString("name") + " Children level = " + c.level)
@@ -39,5 +37,5 @@
 //      }
 //    }
 //  }
-//}
-//
+}
+

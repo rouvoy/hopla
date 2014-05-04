@@ -61,8 +61,6 @@ class Parser(val fileName: String) {
       case "attributeGroup" =>
         val attrsG = new AttributesGroup(node)
         attributesGroupMap.put(attrsG.getName, attrsG)
-        val attrsList = attrsG.getAttributeGroup
-        attrsList.foreach(att => attributeMap.put(att.getName, att))
       case "group" =>
         val group = new Group(node)
         groupMap.put(group.getName, group)

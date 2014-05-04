@@ -47,7 +47,7 @@ case class Attribute(attr: Node) extends Attr {
   override def getAttributeString(s: String): String = {
     attr.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 }
@@ -67,14 +67,21 @@ case class AttributesGroup(node: Node) extends Attr with Schema {
   override def getAttributeString(s: String): String = {
     node.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 
   def getAttributeGroup = {
     val attributesList: ListBuffer[Attribute] = new ListBuffer[Attribute]
     for (child <- node.child) {
-      attributesList += new Attribute(child)
+      val label = child.label
+      label match {
+        case "#PCDATA" =>
+        case "attribute" =>
+//          println("attr: " + child)
+          attributesList += new Attribute(child)
+      }
+
     }
     attributesList.toList
   }
@@ -95,7 +102,7 @@ case class Group(node: Node) extends Schema {
   override def getAttributeString(s: String): String = {
     node.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 
@@ -135,7 +142,7 @@ case class SimpleType(node: Node) extends Type {
   override def getAttributeString(s: String): String = {
     node.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 
@@ -184,7 +191,7 @@ case class ComplexType(node: Node) extends Type {
   override def getAttributeString(s: String): String = {
     node.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 
@@ -231,8 +238,8 @@ case class Element(element: Node) extends Elem {
 
 
   override def getName = {
-    if (ref == true)
-      throw new IllegalArgumentException("This is not a element declaration, but a reference")
+    if (ref)
+      "This is not a element declaration, but a reference: " + getAttributeString("name")
     else
       getAttributeString("name")
   }
@@ -293,26 +300,11 @@ case class Element(element: Node) extends Elem {
   override def getAttributeString(s: String): String = {
     element.attribute(s) match {
       case Some(nodes) => nodes.toString()
-      case None => null
+      case None => ""
     }
   }
 
   def handle() {
-    if (getAttributeString("ref") != null) {
-      ref_=(true)
-      refHandled_=(false)
-      println("Wait for reference declaration: " + getAttributeString("ref"))
-    }
-
-    if(!getAttributeString("type").contains("xs")) {
-      externalType_=(true)
-      typeHandled_=(false)
-      externalTypeName_=(getAttributeString("type"))
-      println("Wait for external Type declaration: " + getAttributeString("type"))
-    }
-
-    //TODO type is an external declaration, how to handle
-
     for (child <- element.child) {
       val label = child.label
       label match {
@@ -329,10 +321,29 @@ case class Element(element: Node) extends Elem {
         case _ => println("Element " + label)
       }
     }
+
+    //TODO type is an external declaration, how to handle
+
+
+    if (getAttributeString("ref") != "") {
+      ref_=(true)
+      refHandled_=(false)
+      println("Wait for reference declaration: " + getAttributeString("ref"))
+    }
+
+    if (getAttributeString("type") != "") {
+      //      println(getAttributeString("type"))
+      if (!getAttributeString("type").contains("xs")) {
+        externalType_=(true)
+        typeHandled_=(false)
+        externalTypeName_=(getAttributeString("type"))
+        println("Wait for external Type declaration: " + getAttributeString("type"))
+      }
+    }
   }
 
   def referenceHandle(elem: Elem) {
-    if(!refHandled) {
+    if (!refHandled) {
       referenceElement_=(elem)
       level_=(value = level + elem.asInstanceOf[Element].level)
       refHandled_=(true)
@@ -340,7 +351,7 @@ case class Element(element: Node) extends Elem {
   }
 
   def typeHandle(value: Type) {
-    if(!typeHandled) {
+    if (!typeHandled) {
       externalTypeDeclaration_=(value)
       //TODO level handle
 
@@ -379,6 +390,7 @@ case class Element(element: Node) extends Elem {
             val elem = new Element(c)
             level_=(value = level.+(1))
             childs_=(elem)
+            elem.handle()
           case _ => println("Element InternalComplexType " + label)
         }
       }
@@ -459,7 +471,7 @@ class Enumeration(enum: Node) extends Restriction(enum: Node) {
   def getValueString: String = {
     enum.attribute("value") match {
       case Some(s) => s.toString()
-      case None => null
+      case None => ""
     }
   }
 }
