@@ -17,6 +17,9 @@ class ParserTest {
     assertTrue(!parser.elementMap.isEmpty)
     println("\n* " + filename + " result:")
     println("- Elements: ")
+    parser.elementList.foreach(e => println(e.getName))
+
+    println("\n- Elements Maps: ")
     parser.elementMap.foreach {
       case (key, value) => println(key)
     }
@@ -54,7 +57,7 @@ class ParserTest {
           }
           else {
             count = 0
-            println
+            println()
           }
         }
         )
@@ -70,6 +73,9 @@ class ParserTest {
     assertTrue(!parser.elementMap.isEmpty)
     println("\n* " + filename + " result: ")
     println("- Elements: ")
+    parser.elementList.foreach(e => println(e.getName))
+
+    println("\n- Elements Maps: ")
     parser.elementMap.foreach {
       case (key, value) => println(key)
     }
@@ -107,7 +113,7 @@ class ParserTest {
           }
           else {
             count = 0
-            println
+            println()
           }
         }
         )

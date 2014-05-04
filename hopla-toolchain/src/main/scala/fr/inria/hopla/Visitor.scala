@@ -13,7 +13,8 @@ class LevelVisitor(val fileName: String) extends Visitor {
   parser.parse()
 
   def visitByLevel() {
-    for (p <- parser.elementList) {
+    for (pa <- parser.elementList) {
+      val p = pa.asInstanceOf[Element]
       if(p.ref) {
         println("Visiting reference element to element: " + p.getAttributeString("name") + " Level = " + p.level + "\n")
       }

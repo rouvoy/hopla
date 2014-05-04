@@ -3,6 +3,7 @@ package fr.inria.hopla
 import scala.xml.{MetaData, Node}
 import scala.collection.mutable._
 import scala.Some
+import scala.collection.mutable
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -78,7 +79,7 @@ case class AttributesGroup(node: Node) extends Attr with Schema {
       label match {
         case "#PCDATA" =>
         case "attribute" =>
-//          println("attr: " + child)
+          //          println("attr: " + child)
           attributesList += new Attribute(child)
       }
 
@@ -228,14 +229,16 @@ case class Element(element: Node) extends Elem {
   private var _externalType = false
   private var _typeHandled = true
 
-  private val interComplexTypes: ListBuffer[InternalComplexType] = new ListBuffer[InternalComplexType]
-  private val interSimpleType: ListBuffer[InternalSimpleType] = new ListBuffer[InternalSimpleType]
-  private val interAttributes: ListBuffer[Attribute] = new ListBuffer[Attribute]
+  val interComplexTypes: ListBuffer[InternalComplexType] = new ListBuffer[InternalComplexType]
+  val interSimpleType: ListBuffer[InternalSimpleType] = new ListBuffer[InternalSimpleType]
+  val interAttributes: ListBuffer[Attr] = new ListBuffer[Attr]
+  val interElement: ListBuffer[Elem] = new ListBuffer[Elem]
 
   private var _referenceElement: Elem = null
   private var _externalTypeDeclaration: Type = null
   private var _externalTypeName: String = null
 
+  private var _parent: Elem = null
 
   override def getName = {
     if (ref)
@@ -286,6 +289,10 @@ case class Element(element: Node) extends Elem {
 
   def externalTypeName = _externalTypeName
 
+  def parent_(value: Elem) = _parent = value
+
+  def parent = _parent
+
   /**
    * Get all attributes as type of MetaData
    * @return
@@ -310,7 +317,12 @@ case class Element(element: Node) extends Elem {
       label match {
         case "complexType" =>
           val ict = new InternalComplexType(child)
+          ict.handle()
           interComplexTypes += ict
+          ict.interElement.foreach(e => {
+            if (!interElement.contains(e))
+              interElement += e
+          })
         case "simpleType" =>
           val ist = new InternalSimpleType(child)
           interSimpleType += ist
@@ -318,6 +330,11 @@ case class Element(element: Node) extends Elem {
           val ia = new Attribute(child)
           interAttributes += ia
         case "#PCDATA" =>
+        case "element" =>
+          val ie = new Element(child)
+          if (!interElement.contains(ie))
+            interElement += ie
+          level += 1
         case _ => println("Element " + label)
       }
     }
@@ -371,18 +388,31 @@ case class Element(element: Node) extends Elem {
 
     def childs = _child
 
-    def getType = {
+    override def handle() {
       for (c <- node.child) {
         val label = c.label
+        //        println("inter label " + label)
         label match {
           case "sequence" =>
             val seq = new Sequence(c)
+            seq.generate()
             level_=(value = level.+(seq.getElementNumber))
             childs_=(seq)
+            for (c <- seq.childs) {
+              val e = c.asInstanceOf[Elem]
+              if (!interElement.contains(e))
+                interElement += e
+            }
           case "choice" =>
             val choice = new Choice(c)
+            choice.generate()
             level_=(value = level.+(choice.getElementNumber))
             childs_=(choice)
+            for (c <- choice.childs) {
+              val e = c.asInstanceOf[Elem]
+              if (!interElement.contains(e))
+                interElement += e
+            }
           case "attribute" =>
             val attr = new Attribute(c)
             childs_=(attr)
@@ -390,12 +420,16 @@ case class Element(element: Node) extends Elem {
             val elem = new Element(c)
             level_=(value = level.+(1))
             childs_=(elem)
+            if (!interElement.contains(elem))
+              interElement += elem
             elem.handle()
+          case "#PCDATA" =>
           case _ => println("Element InternalComplexType " + label)
         }
       }
-      childs.toList
     }
+
+    def getType = childs.toList
   }
 
   class InternalSimpleType(node: Node) extends Element(node: Node) {
@@ -502,13 +536,21 @@ class Union(union: Node) extends SimpleType(union: Node) {
 }
 
 class Sequence(seq: Node) extends ComplexType(seq: Node) {
+
   def getElementNumber = childs.size
 
   def generate() {
     for (c <- seq.child) {
-      val e = new Element(c)
-      e.handle()
-      childs_=(e)
+      val label = c.label
+      label match {
+        case "#PCDATA" =>
+        case "element" =>
+          val e = new Element(c)
+          e.handle()
+          println("Created element: " + e.getName)
+          childs_=(e)
+        case _ => println(this.toString)
+      }
     }
   }
 }
@@ -518,9 +560,16 @@ class Choice(choice: Node) extends ComplexType(choice: Node) {
 
   def generate() {
     for (c <- choice.child) {
-      val e = new Element(c)
-      e.handle()
-      childs_=(e)
+      val label = c.label
+      label match {
+        case "#PCDATA" =>
+        case "element" =>
+          val e = new Element(c)
+          e.handle()
+          println("Created element: " + e.getName)
+          childs_=(e)
+        case _ => println(this.toString)
+      }
     }
   }
 }

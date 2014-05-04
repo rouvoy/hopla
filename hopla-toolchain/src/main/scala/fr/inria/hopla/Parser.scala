@@ -17,7 +17,7 @@ class Parser(val fileName: String) {
   // find all element node sequence
   val element = xsdFile
   val elementMap: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
-  val elementList: ListBuffer[Element] = new ListBuffer[Element]
+  val elementList: ListBuffer[Elem] = new ListBuffer[Elem]
 
   val simpleTypeMap: mutable.HashMap[String, SimpleType] = new mutable.HashMap[String, SimpleType]()
   val complexTypesMap: mutable.HashMap[String, ComplexType] = new mutable.HashMap[String, ComplexType]()
@@ -116,7 +116,12 @@ class Parser(val fileName: String) {
     elementMap.foreach {
       case (key, value) =>
         //        println(key + " " + value)
-        elementList += value
+        if (!elementList.contains(value))
+          elementList += value
+        if (value.interElement.nonEmpty) value.interElement.foreach(e => {
+          if (!elementList.contains(e))
+            elementList += e
+        })
     }
     /* finish element list generation */
   }
