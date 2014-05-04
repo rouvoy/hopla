@@ -3,8 +3,8 @@
 //import scala.collection.mutable.ListBuffer
 //
 ///**
-// * Created by JIN Benli on 26/03/14.
-// */
+//* Created by JIN Benli on 26/03/14.
+//*/
 //trait VisitorMode {
 //  val parser: Parser
 //}

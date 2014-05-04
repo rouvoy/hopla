@@ -10,7 +10,7 @@ import Assert._
 class ParserTest {
   @Test
   def parser() {
-    val parser = new Parser("personal.xsd")
+    val parser = new Parser("fixml-schema-4-4-20040109rev1/Schema/fixml-allocation-base-4-4.xsd")
     parser.parse()
 
     assertTrue(!parser.elementMap.isEmpty)
@@ -32,6 +32,16 @@ class ParserTest {
     println("\n- SimpleTypes:")
     parser.simpleTypeMap.foreach {
       case (key, value) => println(key)
+    }
+
+    println("\n- Group:")
+    parser.groupMap.foreach {
+      case(key, value) => println(key)
+    }
+
+    println("\n- Attributes Group:")
+    parser.attributesGroupMap.foreach {
+      case(key, value) => println(key)
     }
   }
 }

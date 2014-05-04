@@ -2,7 +2,7 @@ package fr.inria.hopla
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
-import scala.xml.{Elem, Node}
+import scala.xml.Node
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -51,6 +51,7 @@ class Parser(val fileName: String) {
 
   def parser(node: Node) {
     val label: String = node.label
+    /* first time declaration */
     label match {
       case "schema" =>
         for (child <- node.child) {
@@ -61,12 +62,12 @@ class Parser(val fileName: String) {
         val attrsG = new AttributesGroup(node)
         attributesGroupMap.put(attrsG.getName, attrsG)
         val attrsList = attrsG.getAttributeGroup
-        attrsList.foreach(att => attributeMap.put(att.getName, att.asInstanceOf))
+        attrsList.foreach(att => attributeMap.put(att.getName, att))
       case "group" =>
         val group = new Group(node)
         groupMap.put(group.getName, group)
         val elemList = group.getGroup
-        elemList.foreach(elem => elementMap.put(elem.getName, elem.asInstanceOf))
+        elemList.foreach(elem => elementMap.put(elem.getName, elem.asInstanceOf[Element]))
       case "simpleType" =>
         val s = new SimpleType(node)
         simpleTypeMap.put(s.getName, s)
@@ -76,13 +77,49 @@ class Parser(val fileName: String) {
       case "element" =>
         val elem = new Element(node)
         elem.handle()
-        elementMap.put(elem.getName, elem)
+        if (elem.ref) {
+          elementMap.put(elem.getName + "ref", elem)
+        } else {
+          elementMap.put(elem.getName, elem)
+        }
       case "attribute" =>
         val att = new Attribute(node)
         attributeMap.put(att.getName, att)
       case "#PCDATA" =>
+      case "include" => println("There need a external xsd file: " + node.attribute("schemaLocation"))
       case _ =>
         println("Parser " + label)
     }
+    /* second time */
+    elementMap.foreach {
+      case (key1, value1) =>
+        if (value1.ref) {
+          elementMap.foreach {
+            case (key2, value2) =>
+              if (key2 == value1.getName)
+                value1.referenceHandle(value2)
+          }
+        }
+        if (value1.externalType) {
+          // TODO choice between simple and complex need to be reconsidered
+          simpleTypeMap.foreach {
+            case (key4, value4) =>
+              if (key4 == value1.externalTypeName)
+                value1.typeHandle(value4.asInstanceOf[Type])
+          }
+          complexTypesMap.foreach {
+            case (key3, value3) =>
+              if (key3 == value1.externalTypeName)
+                value1.typeHandle(value3.asInstanceOf[Type])
+          }
+        }
+    }
+    /* finish handle */
+    elementMap.foreach {
+      case (key, value) =>
+        //        println(key + " " + value)
+        elementList += value
+    }
+    /* finish element list generation */
   }
 }
