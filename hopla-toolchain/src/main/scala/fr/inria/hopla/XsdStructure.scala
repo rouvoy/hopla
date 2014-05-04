@@ -252,37 +252,37 @@ case class Element(element: Node) extends Elem {
   // Getter
   def level = _level
 
-  def root_=(value: Boolean): Unit = _root = value
+  def root_=(value: Boolean) = _root = value
 
   def root = _root
 
-  def ref_=(value: Boolean): Unit = _ref = value
+  def ref_=(value: Boolean) = _ref = value
 
   def ref = _ref
 
-  def refHandled_=(value: Boolean): Unit = _refHandled = value
+  def refHandled_=(value: Boolean) = _refHandled = value
 
   def refHandled = _refHandled
 
-  def externalType_=(value: Boolean): Unit = _externalType = value
+  def externalType_=(value: Boolean) = _externalType = value
 
   def externalType = _externalType
 
-  def typeHandled_=(value: Boolean): Unit = _typeHandled = value
+  def typeHandled_=(value: Boolean) = _typeHandled = value
 
   def typeHandled = _typeHandled
 
   def getNameSpace: String = element.label
 
-  def referenceElement_=(value: Elem): Unit = _referenceElement = value
+  def referenceElement_=(value: Elem) = _referenceElement = value
 
   def referenceElement = _referenceElement
 
-  def externalTypeDeclaration_=(value: Type): Unit = _externalTypeDeclaration = value
+  def externalTypeDeclaration_=(value: Type) = _externalTypeDeclaration = value
 
   def externalTypeDeclaration = _externalTypeDeclaration
 
-  def externalTypeName_=(value: String): Unit = _externalTypeName = value
+  def externalTypeName_=(value: String) = _externalTypeName = value
 
   def externalTypeName = _externalTypeName
 
@@ -326,16 +326,16 @@ case class Element(element: Node) extends Elem {
 
 
     if (getAttributeString("ref") != "") {
-      ref_=(true)
-      refHandled_=(false)
+      ref_=(value = true)
+      refHandled_=(value = false)
       println("Wait for reference declaration: " + getAttributeString("ref"))
     }
 
     if (getAttributeString("type") != "") {
       //      println(getAttributeString("type"))
       if (!getAttributeString("type").contains("xs")) {
-        externalType_=(true)
-        typeHandled_=(false)
+        externalType_=(value = true)
+        typeHandled_=(value = false)
         externalTypeName_=(getAttributeString("type"))
         println("Wait for external Type declaration: " + getAttributeString("type"))
       }
@@ -346,7 +346,7 @@ case class Element(element: Node) extends Elem {
     if (!refHandled) {
       referenceElement_=(elem)
       level_=(value = level + elem.asInstanceOf[Element].level)
-      refHandled_=(true)
+      refHandled_=(value = true)
     }
   }
 
