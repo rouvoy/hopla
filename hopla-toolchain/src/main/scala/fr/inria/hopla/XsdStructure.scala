@@ -407,7 +407,7 @@ case class Element(element: Node) extends Elem {
     }
   }
 
-  def hasChild = element.nonEmpty
+  def hasChild = element.child.nonEmpty
 
   def getNode = element
 
