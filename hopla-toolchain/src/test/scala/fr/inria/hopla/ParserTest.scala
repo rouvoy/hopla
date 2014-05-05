@@ -17,11 +17,12 @@ class ParserTest {
     assertTrue(!parser.elementMap.isEmpty)
     println("\n* " + filename + " result:")
     println("- Elements: ")
-    parser.elementList.foreach(e => println(e.getName))
+    parser.elementList.foreach(e => println(e.getName +
+      " level: " + e.asInstanceOf[Element].level))
 
     println("\n- Elements Maps: ")
     parser.elementMap.foreach {
-      case (key, value) => println(key)
+      case (key, value) => println(key + " level: " + value.asInstanceOf[Element].level)
     }
 
     println("\n- Attributes: ")
@@ -73,11 +74,12 @@ class ParserTest {
     assertTrue(!parser.elementMap.isEmpty)
     println("\n* " + filename + " result: ")
     println("- Elements: ")
-    parser.elementList.foreach(e => println(e.getName))
+    parser.elementList.foreach(e => println(e.getName +
+      " level: " + e.asInstanceOf[Element].level))
 
     println("\n- Elements Maps: ")
     parser.elementMap.foreach {
-      case (key, value) => println(key)
+      case (key, value) => println(key + " level: " + value.asInstanceOf[Element].level)
     }
 
     println("\n- Attributes: ")

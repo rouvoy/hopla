@@ -1,9 +1,9 @@
 package fr.inria.hopla
 
 import scala.xml.{MetaData, Node}
-import scala.collection.mutable._
-import scala.Some
+import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
+import scala.Some
 
 /**
  * Created by JIN Benli on 26/03/14.
@@ -19,6 +19,8 @@ trait Schema {
   def getAttributes: MetaData
 
   def getAttributeString(s: String): String
+
+  val debug = false
 }
 
 trait Elem extends Schema {
@@ -232,7 +234,7 @@ case class Element(element: Node) extends Elem {
   val interComplexTypes: ListBuffer[InternalComplexType] = new ListBuffer[InternalComplexType]
   val interSimpleType: ListBuffer[InternalSimpleType] = new ListBuffer[InternalSimpleType]
   val interAttributes: ListBuffer[Attr] = new ListBuffer[Attr]
-  val interElement: ListBuffer[Elem] = new ListBuffer[Elem]
+  val interElementMap: mutable.HashMap[String, Elem] = new mutable.HashMap[String, Elem]
 
   private var _referenceElement: Elem = null
   private var _externalTypeDeclaration: Type = null
@@ -293,6 +295,17 @@ case class Element(element: Node) extends Elem {
 
   def parent = _parent
 
+  def getElementList = {
+    val elemList: ListBuffer[Elem] = new ListBuffer[Elem]
+    interElementMap.foreach {
+      case (key, value) =>
+        elemList += value
+        if (debug)
+          println("Value: " + key + " " + value)
+    }
+    elemList.toList
+  }
+
   /**
    * Get all attributes as type of MetaData
    * @return
@@ -312,30 +325,45 @@ case class Element(element: Node) extends Elem {
   }
 
   def handle() {
-    for (child <- element.child) {
-      val label = child.label
-      label match {
-        case "complexType" =>
-          val ict = new InternalComplexType(child)
-          ict.handle()
-          interComplexTypes += ict
-          ict.interElement.foreach(e => {
-            if (!interElement.contains(e))
-              interElement += e
-          })
-        case "simpleType" =>
-          val ist = new InternalSimpleType(child)
-          interSimpleType += ist
-        case "attribute" =>
-          val ia = new Attribute(child)
-          interAttributes += ia
-        case "#PCDATA" =>
-        case "element" =>
-          val ie = new Element(child)
-          if (!interElement.contains(ie))
-            interElement += ie
-          level += 1
-        case _ => println("Element " + label)
+    if (element.child.nonEmpty) {
+      for (child <- element.child) {
+        val label = child.label
+        label match {
+          case "complexType" =>
+            val ict = new InternalComplexType(child)
+            ict.handle()
+            interComplexTypes += ict
+            if (debug) {
+              interElementMap.foreach {
+                case (key, value) => println("Before " + key + " " + value)
+              }
+            }
+            ict.interElementMap.foreach {
+              case (key, value) => interElementMap.put(key, value)
+                if (debug)
+                  println(getName + " Add to inter map from complex Type: "
+                    + key + " " + value)
+            }
+            if (debug) {
+              interElementMap.foreach {
+                case (key, value) => println("After " + key + " " + value)
+              }
+            }
+          case "simpleType" =>
+            val ist = new InternalSimpleType(child)
+            interSimpleType += ist
+          case "attribute" =>
+            val ia = new Attribute(child)
+            interAttributes += ia
+          case "#PCDATA" =>
+          case "element" =>
+            val ie = new Element(child)
+            level += 1
+            interElementMap.put(ie.getName, ie)
+            if (debug)
+              println(getName + " Add to inter map: " + ie.getName + " " + ie)
+          case _ => println("Element " + label)
+        }
       }
     }
 
@@ -400,8 +428,16 @@ case class Element(element: Node) extends Elem {
             childs_=(seq)
             for (c <- seq.childs) {
               val e = c.asInstanceOf[Elem]
-              if (!interElement.contains(e))
-                interElement += e
+              interElementMap.put(e.getName, e)
+              if (debug)
+                println(getName + " Add to inter map: " + e.getName + " " + e)
+              e.asInstanceOf[Element].interElementMap.foreach {
+                case (key, value) =>
+                  interElementMap.put(key, value)
+                  if (debug)
+                    println(getName + " Add to inter map from " + e.getName +
+                      "'s inter map: " + key + " " + value)
+              }
             }
           case "choice" =>
             val choice = new Choice(c)
@@ -410,8 +446,16 @@ case class Element(element: Node) extends Elem {
             childs_=(choice)
             for (c <- choice.childs) {
               val e = c.asInstanceOf[Elem]
-              if (!interElement.contains(e))
-                interElement += e
+              interElementMap.put(e.getName, e)
+              if (debug)
+                println(getName + " Add to inter map: " + e.getName + " " + e)
+              e.asInstanceOf[Element].interElementMap.foreach {
+                case (key, value) =>
+                  interElementMap.put(key, value)
+                  if (debug)
+                    println(getName + " Add to inter map from " + e.getName +
+                      "'s inter map: " + key + " " + value)
+              }
             }
           case "attribute" =>
             val attr = new Attribute(c)
@@ -420,9 +464,17 @@ case class Element(element: Node) extends Elem {
             val elem = new Element(c)
             level_=(value = level.+(1))
             childs_=(elem)
-            if (!interElement.contains(elem))
-              interElement += elem
             elem.handle()
+            interElementMap.put(elem.getName, elem)
+            if (debug)
+              println(getName + " Add to inter map: " + elem.getName + " " + elem)
+            elem.interElementMap.foreach {
+              case (key, value) =>
+                interElementMap.put(key, value)
+                if (debug)
+                  println(getName + " Add to inter map from " + elem.getName +
+                    "'s inter map: " + key + " " + value)
+            }
           case "#PCDATA" =>
           case _ => println("Element InternalComplexType " + label)
         }
@@ -547,7 +599,8 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
         case "element" =>
           val e = new Element(c)
           e.handle()
-          println("Created element: " + e.getName)
+          if (debug)
+            println("Created element: " + e.getName)
           childs_=(e)
         case _ => println(this.toString)
       }
@@ -566,7 +619,8 @@ class Choice(choice: Node) extends ComplexType(choice: Node) {
         case "element" =>
           val e = new Element(c)
           e.handle()
-          println("Created element: " + e.getName)
+          if (debug)
+            println("Created element: " + e.getName)
           childs_=(e)
         case _ => println(this.toString)
       }

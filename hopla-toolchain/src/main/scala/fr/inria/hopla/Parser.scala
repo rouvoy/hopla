@@ -16,7 +16,7 @@ class Parser(val fileName: String) {
   lazy val xsdFile = scala.xml.XML.loadFile(fileName)
   // find all element node sequence
   val element = xsdFile
-  val elementMap: mutable.HashMap[String, Element] = new mutable.HashMap[String, Element]
+  val elementMap: mutable.HashMap[String, Elem] = new mutable.HashMap[String, Elem]
   val elementList: ListBuffer[Elem] = new ListBuffer[Elem]
 
   val simpleTypeMap: mutable.HashMap[String, SimpleType] = new mutable.HashMap[String, SimpleType]()
@@ -24,6 +24,8 @@ class Parser(val fileName: String) {
   val attributesGroupMap: mutable.HashMap[String, AttributesGroup] = new mutable.HashMap[String, AttributesGroup]()
   val groupMap: mutable.HashMap[String, Group] = new mutable.HashMap[String, Group]()
   val attributeMap: mutable.HashMap[String, Attribute] = new mutable.HashMap[String, Attribute]()
+
+  val debug = false
 
   /**
   /**
@@ -44,10 +46,6 @@ class Parser(val fileName: String) {
     }
   }
     */
-
-  def parse() {
-    parser(element)
-  }
 
   def parser(node: Node) {
     val label: String = node.label
@@ -88,9 +86,15 @@ class Parser(val fileName: String) {
       case _ =>
         println("Parser " + label)
     }
+  }
+
+  def handler() {
     /* second time */
     elementMap.foreach {
-      case (key1, value1) =>
+      case (key1, valueE) =>
+        if (debug)
+          println("Second time: " + key1 + " " + valueE)
+        val value1 = valueE.asInstanceOf[Element]
         if (value1.ref) {
           elementMap.foreach {
             case (key2, value2) =>
@@ -113,16 +117,35 @@ class Parser(val fileName: String) {
         }
     }
     /* finish handle */
+  }
+
+  def generateList() {
+    //      elementMap.foreach {
+    //        case (key, value) => println(key + " " + value)
+    //      }
     elementMap.foreach {
-      case (key, value) =>
-        //        println(key + " " + value)
-        if (!elementList.contains(value))
+      case (key, v) =>
+        val value = v.asInstanceOf[Element]
+        if (debug)
+          println("Element Map to List: " + key + " " + value)
+        if (!elementList.contains(value) && !key.contains("ref")) {
           elementList += value
-        if (value.interElement.nonEmpty) value.interElement.foreach(e => {
-          if (!elementList.contains(e))
-            elementList += e
-        })
+          if (debug)
+            println("Add to list: " + key + " " + value)
+        }
+        if (value.hasChild && !key.contains("ref")) {
+          elementList ++= value.getElementList
+          if (debug)
+            value.getElementList.foreach(e => println("Add to list from child list: "
+              + e.getName + " " + e))
+        }
     }
     /* finish element list generation */
+  }
+
+  def parse() {
+    parser(element)
+    handler()
+    generateList()
   }
 }
