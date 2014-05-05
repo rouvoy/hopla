@@ -15,14 +15,23 @@ class LevelVisitor(val fileName: String) extends Visitor {
   def visitByLevel() {
     for (pa <- parser.elementList) {
       val p = pa.asInstanceOf[Element]
-      if(p.ref) {
-        println("Visiting reference element to element: " + p.getAttributeString("name") + " Level = " + p.level + "\n")
+      if (p.ref) {
+        print("Visiting reference element to element: " + p.getName + " level: " + p.level)
+        if (p.parent != null)
+          println(" parent: " + p.parent.getName)
+        else
+          println()
       }
       else {
-        println("Visiting element: " + p.getAttributeString("name" + " Level = " + p.level + "\n"))
+        print("Visiting element: " + p.getName + " level: " + p.level)
+        if (p.parent != null)
+          println(" parent: " + p.parent.getName)
+        else
+          println()
       }
     }
   }
+}
 
 //  def visitChild(childList: ListBuffer[Element]) {
 //    for (c <- childList) {
@@ -38,5 +47,4 @@ class LevelVisitor(val fileName: String) extends Visitor {
 //      }
 //    }
 //  }
-}
 

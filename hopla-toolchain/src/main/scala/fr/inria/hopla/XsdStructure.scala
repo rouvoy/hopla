@@ -331,7 +331,9 @@ case class Element(element: Node) extends Elem {
         label match {
           case "complexType" =>
             val ict = new InternalComplexType(child)
+            ict.parent_(this)
             ict.handle()
+            level_=(value = level + ict.level)
             interComplexTypes += ict
             if (debug) {
               interElementMap.foreach {
@@ -351,6 +353,7 @@ case class Element(element: Node) extends Elem {
             }
           case "simpleType" =>
             val ist = new InternalSimpleType(child)
+            ist.parent_(this)
             interSimpleType += ist
           case "attribute" =>
             val ia = new Attribute(child)
@@ -359,6 +362,7 @@ case class Element(element: Node) extends Elem {
           case "element" =>
             val ie = new Element(child)
             level += 1
+            ie.parent_(this)
             interElementMap.put(ie.getName, ie)
             if (debug)
               println(getName + " Add to inter map: " + ie.getName + " " + ie)
@@ -423,6 +427,7 @@ case class Element(element: Node) extends Elem {
         label match {
           case "sequence" =>
             val seq = new Sequence(c)
+            seq.parent_(parent)
             seq.generate()
             level_=(value = level.+(seq.getElementNumber))
             childs_=(seq)
@@ -441,6 +446,7 @@ case class Element(element: Node) extends Elem {
             }
           case "choice" =>
             val choice = new Choice(c)
+            choice.parent_(parent)
             choice.generate()
             level_=(value = level.+(choice.getElementNumber))
             childs_=(choice)
@@ -462,6 +468,7 @@ case class Element(element: Node) extends Elem {
             childs_=(attr)
           case "element" =>
             val elem = new Element(c)
+            elem.parent_(parent)
             level_=(value = level.+(1))
             childs_=(elem)
             elem.handle()
@@ -589,6 +596,12 @@ class Union(union: Node) extends SimpleType(union: Node) {
 
 class Sequence(seq: Node) extends ComplexType(seq: Node) {
 
+  private var _parent: Elem = null
+
+  def parent_(value: Elem) = _parent = value
+
+  def parent = _parent
+
   def getElementNumber = childs.size
 
   def generate() {
@@ -598,6 +611,9 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
         case "#PCDATA" =>
         case "element" =>
           val e = new Element(c)
+          if (parent != null)
+            e.parent_(parent)
+          else throw new IllegalArgumentException("Parent null")
           e.handle()
           if (debug)
             println("Created element: " + e.getName)
@@ -609,6 +625,13 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
 }
 
 class Choice(choice: Node) extends ComplexType(choice: Node) {
+
+  private var _parent: Elem = null
+
+  def parent_(value: Elem) = _parent = value
+
+  def parent = _parent
+
   def getElementNumber = childs.size
 
   def generate() {
@@ -618,6 +641,9 @@ class Choice(choice: Node) extends ComplexType(choice: Node) {
         case "#PCDATA" =>
         case "element" =>
           val e = new Element(c)
+          if (parent != null)
+            e.parent_(parent)
+          else throw new IllegalArgumentException("Parent null")
           e.handle()
           if (debug)
             println("Created element: " + e.getName)
