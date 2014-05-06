@@ -1,10 +1,29 @@
 import address.Tags
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.collection.SortedMap
 
 package object address {
 
+  val map = new mutable.HashMap[String, ListBuffer[String]]
+  val temp1= new ListBuffer[String]
+  temp1 += "Nom"
+  temp1 += "Note"
+  map.put("Town", temp1)
+  val temp2= new ListBuffer[String]
+  temp2 += "House"
+  temp2 += "Town"
+  temp2 += "Recipient"
+  temp2 += "PostCode"
+  temp2 += "Country"
+  temp2 += "Street"
+  temp2 += "County"
+  map.put("Address", temp2)
+
   trait Modifier {
     def transform(tag: ScalaTag): ScalaTag
+
+    def getName: String
   }
 
   trait Node extends Modifier {
@@ -27,6 +46,8 @@ package object address {
    * @param v
    */
   case class StringNode(v: String) extends Node {
+    override def getName = null
+
     def writeTo(strb: StringBuilder): Unit = Escaping.escape(v, strb)
   }
 
@@ -34,13 +55,37 @@ package object address {
                       children: List[Node],
                       attrs: SortedMap[String, String],
                       void: Boolean = false) extends Node {
+    override def getName = tag
 
     def apply(xs: Modifier*) = {
       var newTag = this
+      val buffer: ListBuffer[String] = new ListBuffer[String]
+      println(newTag.getName + "***")
+      if(map.contains(newTag.getName))
+        buffer ++= map.get(newTag.getName).get
+
+      println(buffer)
 
       var i = 0
       while (i < xs.length) {
-        newTag = xs(i).transform(newTag)
+        xs(i) match {
+          case x: ScalaTag => {
+            println(xs(i).getName + " " + xs(i).getClass)
+            if(buffer.contains(xs(i).getName)) {
+              println("transform: " + xs(i).getName)
+              newTag = xs(i).transform(newTag)
+            }
+            else if(buffer != null)
+              throw new IllegalArgumentException("illegal child: " + xs(i).getName)
+            else
+              println("case not handled")
+          }
+          case x: StringNode => {
+            println("String node " + xs(i).getClass)
+            newTag = xs(i).transform(newTag)
+          }
+          case _ =>
+        }
         i += 1
       }
       newTag
@@ -158,7 +203,8 @@ package object address {
 object Test extends Tags {
   def main(args: Array[String]) {
     val res = Address(Recipient("abc"), House("123"), Street("Rue"))
-
-    println(res)
+    println("+++" + res + "\n")
+    val res2 = Recipient(Address(Recipient("abc")))
+    println("+++" + res2)
   }
 }

@@ -40,18 +40,21 @@ class ChildVisitor(parser: Parser) extends Visitor {
       val p = pa.asInstanceOf[Element]
       val buffer = new ListBuffer[String]
       print("Visiting element: " + p.getName + " level: " + p.level)
-      if(p.hasChild)
+      if(p.hasChild) {
         println(" whose child list: ")
-      else
-        println(" has no child")
-      if(p.hasChild) for(pb <- parser.elementList) {
-        val px = pb.asInstanceOf[Element]
-        if(px.parent == p) {
-          println(px.getName)
-          buffer += px.getName
+        for(pb <- parser.elementList) {
+          val px = pb.asInstanceOf[Element]
+          if(px.parent == p) {
+            println(px.getName)
+            buffer += px.getName
+          }
         }
+        map.put(p.getName, buffer)
       }
-      map.put(p.getName, buffer)
+      else {
+        println(" has no child")
+        map.put(p.getName, null)
+      }
     }
 
   }
