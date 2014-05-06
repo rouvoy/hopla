@@ -10,7 +10,7 @@ import Assert._
 class ParserTest {
   @Test
   def lanceTest() {
-    val filename1 = "fixml-schema-4-4-20040109rev1/Schema/fixml-allocation-base-4-4.xsd"
+    val filename1 = "hopla-toolchain/fixml-schema-4-4-20040109rev1/Schema/fixml-allocation-base-4-4.xsd"
     parserTest(filename1)
     println()
 

@@ -14,7 +14,7 @@ class VisitorTest {
   @Test
   def lanceTest() {
     val filename1 = "address.xsd"
-    val filename2 = "fixml-schema-4-4-20040109rev1/Schema/fixml-allocation-base-4-4.xsd"
+    val filename2 = "hopla-toolchain/fixml-schema-4-4-20040109rev1/Schema/fixml-allocation-base-4-4.xsd"
 
     val parser1 = new Parser(filename1)
     parser1.parse()
@@ -53,7 +53,8 @@ class VisitorTest {
     t.getRelationMap.foreach {
       case (key, value) =>
         print(key + ": ")
-        value.foreach(s => print(s + " "))
+        if (value != null)
+          value.foreach(s => print(s + " "))
         println()
     }
   }
