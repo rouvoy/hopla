@@ -1,3 +1,0 @@
-Release Notes FIXML 4.4 Schema 20040109 Revision 1
-
-   2006-10-06 JimN Corrected omission of settlement impl file as noted in http://www.fixprotocol.org/discuss/read/9b22ceae
