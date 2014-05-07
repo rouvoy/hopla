@@ -91,6 +91,23 @@ case class AttributesGroup(node: Node) extends Attr with Schema {
 }
 
 case class Group(node: Node) extends Schema {
+  private var _parent: Elem = null
+  private var _ref = false
+  private var _refHandled = true
+  val elemBuffer: ListBuffer[Schema] = new ListBuffer[Schema]
+
+  def ref_=(value: Boolean) = _ref = value
+
+  def ref = _ref
+
+  def refHandled_=(value: Boolean) = _refHandled = value
+
+  def refHandled = _refHandled
+
+  def parent_(value: Elem) = _parent = value
+
+  def parent = _parent
+
   /**
    * Get all attributes as type of MetaData
    * @return
@@ -109,24 +126,29 @@ case class Group(node: Node) extends Schema {
     }
   }
 
-  def getGroup = {
-    val firstChild = node.child(0)
-    val label = firstChild.label
-    val elemBuffer: ListBuffer[Schema] = new ListBuffer[Schema]
-    label match {
-      case "sequence" =>
-        val seq = new Sequence(firstChild)
-        elemBuffer ++= seq.childs
-      case "choice" =>
-        val choice = new Choice(firstChild)
-        elemBuffer ++= choice.childs.toList
-      case "#PCDATA" =>
-      case _ =>
-        println("Group " + label)
-        null
+  def handle() {
+    if (getAttributeString("ref") != "") {
+      ref_=(true)
+      println("Wait for external Group: " + getAttributeString("ref") + " declaration")
+    } else {
+      val firstChild = node.child(0)
+      val label = firstChild.label
+
+      label match {
+        case "sequence" =>
+          val seq = new Sequence(firstChild)
+          elemBuffer ++= seq.childs
+        case "choice" =>
+          val choice = new Choice(firstChild)
+          elemBuffer ++= choice.childs.toList
+        case "#PCDATA" =>
+        case _ =>
+          println("Group " + label)
+      }
     }
-    elemBuffer.toList
   }
+
+  def getGroup = elemBuffer
 }
 
 case class SimpleType(node: Node) extends Type {
@@ -174,9 +196,10 @@ case class SimpleType(node: Node) extends Type {
 case class ComplexType(node: Node) extends Type {
 
   private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
-
+  private var _parent: Elem = null
+  def parent_(value: Elem) = _parent = value
+  def parent = _parent
   def childs_=(value: Schema): Unit = _child += value
-
   def childs = _child
 
 
@@ -198,27 +221,74 @@ case class ComplexType(node: Node) extends Type {
     }
   }
 
-  def getType = {
-    for (c <- node.child) {
-      val label = c.label
-      label match {
-        case "sequence" =>
-          val seq = new Sequence(c)
-          childs_=(seq)
-        case "choice" =>
-          val choice = new Choice(c)
-          childs_=(choice)
-        case "attribute" =>
-          val attr = new Attribute(c)
-          childs_=(attr)
-        case "element" =>
-          val elem = new Element(c)
-          childs_=(elem)
-        case _ =>
-          println("ComplexType " + label)
+  def handle() {
+    if(parent == null)
+      throw new NullPointerException("Parent need to be set")
+    else {
+      for (c <- node.child) {
+        val label = c.label
+        label match {
+          case "sequence" =>
+            val seq = new Sequence(c)
+            seq.parent_(parent)
+            seq.handle()
+            childs_=(seq)
+          case "choice" =>
+            val choice = new Choice(c)
+            choice.parent_(parent)
+            choice.handle()
+            childs_=(choice)
+          case "attribute" =>
+            val attr = new Attribute(c)
+            childs_=(attr)
+          case "element" =>
+            val elem = new Element(c)
+            elem.parent_(parent)
+            elem.handle()
+            childs_=(elem)
+          case "complexContent" =>
+            val cc = new ComplexContent(c)
+            cc.parent_(parent)
+            cc.handle()
+            childs_=(cc)
+          case _ =>
+            println("ComplexType " + label)
+        }
       }
     }
-    childs.toList
+  }
+
+  def getType = childs
+}
+
+class ComplexContent(content: Node) extends ComplexType(content: Node) {
+  private var _base = ""
+
+  def base_(value: String) = _base = value
+  def base = _base
+
+  override def handle() {
+    for(c <- content.child) {
+      val label = c.label
+      label match {
+        case "extension" => {
+          base_(value = c.attribute("ref").get.toString())
+          for( gc <- c.child) {
+            val labelg = gc.label
+            labelg match {
+              case "sequence" =>
+                val s = new Sequence(gc)
+                childs_=(s)
+              case "#PCDATA" =>
+              case _ =>
+                println("ComplexContent "+ getName + " extension child: " + label)
+            }
+          }
+        }
+        case "#PCDATA" =>
+        case _ => println("ComplexContent: "+ getName + " " + label)
+      }
+    }
   }
 }
 
@@ -428,7 +498,7 @@ case class Element(element: Node) extends Elem {
           case "sequence" =>
             val seq = new Sequence(c)
             seq.parent_(parent)
-            seq.generate()
+            seq.handle()
             level_=(value = level.+(seq.getElementNumber))
             childs_=(seq)
             for (c <- seq.childs) {
@@ -447,7 +517,7 @@ case class Element(element: Node) extends Elem {
           case "choice" =>
             val choice = new Choice(c)
             choice.parent_(parent)
-            choice.generate()
+            choice.handle()
             level_=(value = level.+(choice.getElementNumber))
             childs_=(choice)
             for (c <- choice.childs) {
@@ -596,15 +666,9 @@ class Union(union: Node) extends SimpleType(union: Node) {
 
 class Sequence(seq: Node) extends ComplexType(seq: Node) {
 
-  private var _parent: Elem = null
-
-  def parent_(value: Elem) = _parent = value
-
-  def parent = _parent
-
   def getElementNumber = childs.size
 
-  def generate() {
+  override def handle() {
     for (c <- seq.child) {
       val label = c.label
       label match {
@@ -619,6 +683,9 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
             println("Created element: " + e.getName)
           childs_=(e)
         case "group" =>
+          val g = new Group(c)
+          g.parent_(parent)
+          childs ++= g.getGroup
         case _ => println(this.toString)
       }
     }
@@ -627,15 +694,9 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
 
 class Choice(choice: Node) extends ComplexType(choice: Node) {
 
-  private var _parent: Elem = null
-
-  def parent_(value: Elem) = _parent = value
-
-  def parent = _parent
-
   def getElementNumber = childs.size
 
-  def generate() {
+  override def handle() {
     for (c <- choice.child) {
       val label = c.label
       label match {
@@ -649,6 +710,10 @@ class Choice(choice: Node) extends ComplexType(choice: Node) {
           if (debug)
             println("Created element: " + e.getName)
           childs_=(e)
+        case "group" =>
+          val g = new Group(c)
+          g.parent_(parent)
+          childs ++= g.getGroup
         case _ => println(this.toString)
       }
     }
