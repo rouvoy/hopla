@@ -15,11 +15,8 @@ import scala.Some
 
 trait Schema {
   def getName = getAttributeString("name")
-
   def getAttributes: MetaData
-
   def getAttributeString(s: String): String
-
   val debug = false
 }
 
@@ -320,49 +317,28 @@ case class Element(element: Node) extends Elem {
   }
 
   def getRefName = getAttributeString("ref")
-
   // Setter
   def level_=(value: Int): Unit = _level = value
-
   // Getter
   def level = _level
-
   def root_=(value: Boolean) = _root = value
-
   def root = _root
-
   def ref_=(value: Boolean) = _ref = value
-
   def ref = _ref
-
   def refHandled_=(value: Boolean) = _refHandled = value
-
   def refHandled = _refHandled
-
   def externalType_=(value: Boolean) = _externalType = value
-
   def externalType = _externalType
-
   def typeHandled_=(value: Boolean) = _typeHandled = value
-
   def typeHandled = _typeHandled
-
   def getNameSpace: String = element.label
-
   def referenceElement_=(value: Elem) = _referenceElement = value
-
   def referenceElement = _referenceElement
-
   def externalTypeDeclaration_=(value: Type) = _externalTypeDeclaration = value
-
   def externalTypeDeclaration = _externalTypeDeclaration
-
   def externalTypeName_=(value: String) = _externalTypeName = value
-
   def externalTypeName = _externalTypeName
-
   def parent_(value: Elem) = _parent = value
-
   def parent = _parent
 
   def getElementList = {
@@ -483,11 +459,8 @@ case class Element(element: Node) extends Elem {
 
   class InternalComplexType(node: Node) extends Element(node: Node) {
     override def getName = "Internal ComplexType"
-
     private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
-
     def childs_=(value: Schema): Unit = _child += value
-
     def childs = _child
 
     override def handle() {
@@ -590,11 +563,8 @@ case class Element(element: Node) extends Elem {
 
 class Restriction(res: Node) extends SimpleType(res: Node) {
   def getBase = getAttributeString("base")
-
   private val _child: ListBuffer[Schema] = new ListBuffer[Schema]()
-
   def childs_=(value: Schema): Unit = _child += value
-
   def childs = _child
 
   def generate() {
@@ -641,7 +611,6 @@ class Enumeration(enum: Node) extends Restriction(enum: Node) {
 
 class NumericRestriction(nr: Node) extends Restriction(nr: Node) {
 
-
   def apply(num: BigDecimal): Boolean = {
 
     val operator = nr.label
@@ -665,7 +634,6 @@ class Union(union: Node) extends SimpleType(union: Node) {
 }
 
 class Sequence(seq: Node) extends ComplexType(seq: Node) {
-
   def getElementNumber = childs.size
 
   override def handle() {
@@ -693,7 +661,6 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
 }
 
 class Choice(choice: Node) extends ComplexType(choice: Node) {
-
   def getElementNumber = childs.size
 
   override def handle() {
