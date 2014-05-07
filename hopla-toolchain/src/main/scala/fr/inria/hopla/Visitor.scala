@@ -10,11 +10,20 @@ trait Visitor
 
 class LevelVisitor(parser: Parser) extends Visitor {
 
+  private var _root: String = ""
+
+  def root_(value: String) = _root = value
+
+  def root = _root
+
   def visitByLevel() {
+    var maxElem: Element = parser.elementList(0).asInstanceOf[Element]
     for (pa <- parser.elementList) {
       val p = pa.asInstanceOf[Element]
       if (p.ref) {
         print("Visiting reference element to element: " + p.getName + " level: " + p.level)
+        if (p.level > maxElem.level)
+          maxElem = p
         if (p.parent != null)
           println(" parent: " + p.parent.getName)
         else
@@ -22,13 +31,18 @@ class LevelVisitor(parser: Parser) extends Visitor {
       }
       else {
         print("Visiting element: " + p.getName + " level: " + p.level)
+        if (p.level > maxElem.level)
+          maxElem = p
         if (p.parent != null)
           println(" parent: " + p.parent.getName)
         else
           println()
       }
     }
+    root_(maxElem.getName)
   }
+
+  def getMaxName = root
 }
 
 class ChildVisitor(parser: Parser) extends Visitor {
@@ -40,11 +54,11 @@ class ChildVisitor(parser: Parser) extends Visitor {
       val p = pa.asInstanceOf[Element]
       val buffer = new ListBuffer[String]
       print("Visiting element: " + p.getName + " level: " + p.level)
-      if(p.hasChild) {
+      if (p.hasChild) {
         println(" whose child list: ")
-        for(pb <- parser.elementList) {
+        for (pb <- parser.elementList) {
           val px = pb.asInstanceOf[Element]
-          if(px.parent == p) {
+          if (px.parent == p) {
             println(px.getName)
             buffer += px.getName
           }
@@ -76,7 +90,7 @@ class TagVisitor(parser: Parser) extends Visitor {
     }
     tagBuffer.foreach {
       case (value) =>
-        s ++= "val " ++= value ++= " = \"" ++= value ++= "\".tag\n  "
+        s ++= "val " ++= value ++= " = \"" ++= value ++= "\".tag\n\t"
     }
   }
 
@@ -96,7 +110,7 @@ class AttrVisitor(parser: Parser) extends Visitor {
     val attributes = e.getAttributes
 
     //    val buffer: StringBuilder = new StringBuilder()
-    for(attr <- attributes) attr.key match {
+    for (attr <- attributes) attr.key match {
       case "name" => println("name: " + attr.value)
       case "type" => println("type: " + attr.value)
       case "minOccurs" => println("minOcccurs: " + attr.value)

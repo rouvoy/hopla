@@ -39,24 +39,6 @@ class ScMemoryTest {
 
   }
   def generate(p: Parser) = {
-    //    val vis = new TagVisitor(p)
-    //    vis.createTagsFromFile()
-    //    val tag = new ScTags(vis.s)
-    //    val tagFun = new ScTagFunction
-    //    val tagOb = new ScDefTag(tag)
-    //    val escape = new ScEscapeFun
-    //
-    //    val list = List(tagFun.asInstanceOf[ScMemory], tagOb.asInstanceOf[ScMemory], escape.asInstanceOf[ScMemory])
-    //
-    //    val imp = new ScImport("personne")
-    //    val pac = new ScPackage("personne", list)
-    //
-    //    println(imp.write + pac.write)
-    //
-    //    val out = new PrintWriter("hopla-toolchain/out/personne.scala")
-    //    out.println(imp.write + pac.write)
-    //    out.close()
-
     val vis = new TagVisitor(p)
     val rel = new ScRelation(vis.getRelationMap)
     println(rel.write)

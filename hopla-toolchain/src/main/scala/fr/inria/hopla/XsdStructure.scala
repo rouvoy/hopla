@@ -618,6 +618,7 @@ class Sequence(seq: Node) extends ComplexType(seq: Node) {
           if (debug)
             println("Created element: " + e.getName)
           childs_=(e)
+        case "group" =>
         case _ => println(this.toString)
       }
     }
