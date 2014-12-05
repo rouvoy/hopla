@@ -1,7 +1,8 @@
 package fr.inria.hopla.ast
 
 /**
- * Created by jonathan on 29/10/14.
+ * Representation of a scala trait in AST
+ * @author Jérémy Bossut, Jonathan Geoffroy
  */
 class ASTTrait(name : String = null) extends ASTFile(name) {
 }

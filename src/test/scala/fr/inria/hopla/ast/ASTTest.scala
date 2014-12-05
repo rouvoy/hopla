@@ -9,37 +9,38 @@ import org.scalatest.{Matchers, FlatSpec}
 
 class ASTTest extends FlatSpec with Matchers with MockFactory {
   "An empty AST" should "empty" in {
-    assert(new AST().files.isEmpty)
+    assert(true)
+    new ASTImpl().isEmpty
   }
 
   "An empty AST" should "add a Trait" in {
     val traitMock = new ASTTrait("TestTrait")
-    val ast : AST = new AST()
+    val ast : ASTImpl = new ASTImpl()
     ast.getOrAddFile(traitMock)
-    assert(ast.files.size == 1 && ast.files.contains("TestTrait"))
+    assert(ast.contains("TestTrait"))
   }
 
   "An AST" should "add two different Traits" in {
     val firstTraitMock = new ASTTrait("FirstTraitMock")
     val secondTraitMock = new ASTTrait("SecondTraitMock")
 
-    val ast : AST = new AST()
+    val ast : ASTImpl = new ASTImpl()
     ast.getOrAddFile(firstTraitMock)
     ast.getOrAddFile(secondTraitMock)
-    assert( ast.files.size == 2 &&
-            ast.files.contains("FirstTraitMock") &&
-            ast.files.contains("SecondTraitMock"))
+    assert( ast.size == 2 &&
+            ast.contains("FirstTraitMock") &&
+            ast.contains("SecondTraitMock"))
   }
 
   "An AST" should "add the same Trait only once" in {
     val firstTraitMock = new ASTTrait("SameTraitName")
     val secondTraitMock = new ASTTrait("SameTraitName")
 
-    val ast : AST = new AST()
+    val ast : ASTImpl = new ASTImpl()
     ast.getOrAddFile(firstTraitMock)
     val returnedTrait = ast.getOrAddFile(secondTraitMock)
-    assert( ast.files.size == 1 &&
-            ast.files.contains("SameTraitName") &&
+    assert( ast.size == 1 &&
+            ast.contains("SameTraitName") &&
             returnedTrait.equals(firstTraitMock))
   }
 }

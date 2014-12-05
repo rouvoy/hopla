@@ -5,5 +5,5 @@ package fr.inria.hopla.ast
  * @author Jérémy Bossut, Jonathan Geoffroy
  */
 class ASTField(name: String, fieldType: String) {
-  def getName = name
+  val getName = name
 }

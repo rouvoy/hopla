@@ -1,6 +1,6 @@
 package fr.inria.hopla.parser.processors
 
-import fr.inria.hopla.ast.AST
+import fr.inria.hopla.ast.ASTComponentImpl
 import org.scalatest.{Matchers, FlatSpec}
 import fr.inria.hopla.parser.XSDParser
 
@@ -10,15 +10,15 @@ import scala.xml.pull.XMLEventReader
 /**
  * @author Jérémy Bossut, Jonathan Geoffroy
  */
-class ExtensionProcessorTest extends FlatSpec with Matchers {
+class ExtensionProcessorTest extends FlatSpec with Matchers with ASTComponentMock {
   "ExtensionProcessor" should "add fields into element" in {
     val xsd = new XMLEventReader(Source.fromFile("src/test/resources/xsd/extension.xsd"))
-    val ast = new AST()
-    new XSDParser(ast, xsd).parse()
+    val parser = new XSDParser with ASTComponentMock
+    val ast = parser.parse(xsd)
 
-    assert(ast.files.contains("element"))
+    assert(ast.contains("element"))
 
-    val elementTrait = ast.files.get("element").get
+    val elementTrait = ast.get("element").get
     val fields = elementTrait.getFields
     assert(fields.nonEmpty && fields(0).getName.equals("attrs"))
   }
