@@ -38,8 +38,8 @@ abstract case class ASTFile(name: String) {
    * @param astTrait the trait implemented by this ASTFile
    */
   def withTrait(astTrait: ASTTrait): Unit = {
-    traits = traits + astTrait
-    astTrait.subFiles = astTrait.subFiles + this
+      traits += astTrait
+      astTrait.subFiles += this
   }
 
   /**

@@ -1,44 +1,46 @@
 package fr.inria.hopla.ast
 
 /**
-  * Abstract Syntax Tree which represents a scala project<br>
-  * Each Compilation Unit, represented by an <code>ASTFile</code>, can be generated
-  *
-  * @author Jérémy Bossut, Jonathan Geoffroy
-  */
-case class AST() {
-  var files:Map[String, ASTFile] = Map()
-
-  /**
-   * Add a file into AST
-   * @param file
-   */
-  private def addFile(file: ASTFile): Unit = {
-    files = files + (file.name -> file)
-  }
+ * @author Jérémy Bossut, Jonathan Geoffroy
+ */
+trait AST {
 
   /**
    * Add a file into AST if it doesn't already exist, return the existing file otherwise.
-   * @param file
+   * @param file the file to get or add
    * @tparam T type of the given file.
    * @return a file of type T.
    */
-  def getOrAddFile[T <: ASTFile](file : T) : T = {
-    files.get(file.name) match {
-      case None => {
-    	  addFile(file)
-    	  file
-      }
-      case f => f.get.asInstanceOf[T]
-    }
-  }
+  def getOrAddFile[T <: ASTFile](file: T): T
+
+  /**
+   *
+   * @param filename the name of the file to find
+   * @return the file if found, None otherwise.
+   */
+  def get(filename: String): Option[ASTFile]
 
   /**
    * Simplify the AST by removing redundant implementations
    */
-  def simplify(): Unit = {
-    for(file <- files.values) {
-      file.simplify()
-    }
-  }
+  def simplify(): Unit
+
+  /**
+   *
+   * @return the number of ASTFile contained by the AST
+   */
+  def size : Int
+
+  /**
+   * check if the AST contains an ASTFile named <code>filename</code>
+   * @param filename the name of the ASTFile to check
+   * @return true if ast contains an ASTFile named <code>filename</code>
+   */
+  def contains(filename : String) : Boolean
+
+  /**
+   *
+   * @return true if ast doesn't contain any ASTFile
+   */
+  def isEmpty: Boolean
 }

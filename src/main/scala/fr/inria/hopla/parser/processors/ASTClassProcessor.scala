@@ -1,6 +1,6 @@
 package fr.inria.hopla.parser.processors
 
-import fr.inria.hopla.ast.{ASTFile, ASTClass, AST}
+import fr.inria.hopla.ast.{AST, ASTClass, ASTFile}
 
 import scala.xml.pull.EvElemStart
 
