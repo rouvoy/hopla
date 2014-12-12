@@ -21,6 +21,6 @@ class SequenceProcessorTest extends FlatSpec with Matchers with ASTComponentMock
 
     val elementTrait = ast.get("element").get
     val fields = elementTrait.getFields
-    assert(fields.nonEmpty && fields(0).getName.equals("attr1") && fields(1).getName.equals("attr2"))
+    assert(fields.nonEmpty && fields(0).name.equals("attr1") && fields(1).name.equals("attr2"))
   }
 }
