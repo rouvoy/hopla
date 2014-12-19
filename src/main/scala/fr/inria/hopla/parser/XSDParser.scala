@@ -36,6 +36,7 @@ class XSDParser {
             case "complexType" => process(new ComplexTypeProcessor(ast), event)
             case "choice" => process(new ChoiceProcessor(), event)
             case "sequence" => process(new ASTFieldProcessor(), event)
+            case "attribute" => process(new PrimitiveTypeProcessor(), event)
             case "import" | "annotation" | "documentation" | "complexContent" => processors = processors.push(processors.top) // skip these markers
             case _ =>
               println(label + " skipped")
