@@ -20,7 +20,8 @@ class ExtensionProcessor(ast: AST) extends ASTFieldProcessor {
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {
     super.process(event, parent)
-    parent.getAstFile.withTrait(ast.getOrAddFile(new ASTTrait(event.attrs.get("base").mkString)))
+    val fieldName = markerNameField(event)
+    parent.getAstFile.withField(new ASTField(fieldName, fieldName))
     this
   }
 }
