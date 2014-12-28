@@ -20,6 +20,6 @@ class ExtensionProcessorTest extends FlatSpec with Matchers with ASTComponentMoc
 
     val elementTrait = ast.get("element").get
     val fields = elementTrait.getFields
-    assert(fields.nonEmpty && fields(0).name.equals("attrs"))
+    assert(fields.nonEmpty && fields(0).name.equals("extension"))
   }
 }
