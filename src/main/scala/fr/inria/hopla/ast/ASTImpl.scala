@@ -34,4 +34,6 @@ case class ASTImpl(files: scala.collection.mutable.Map[String, ASTFile]) extends
   override def isEmpty: Boolean = files.isEmpty
   override def size : Int = files.size
   override def get(filename: String) : Option[ASTFile] = files.get(filename)
+
+  override def getFiles: List[ASTFile] = files.values.toList
 }

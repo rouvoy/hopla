@@ -1,6 +1,6 @@
 package fr.inria.hopla.ast
 
-import java.io.{File, PrintWriter}
+import fr.inria.hopla.generator.ASTFileGenerator
 
 /**
  * Abstraction for a scala file (Compilation Unit)<br>
@@ -10,11 +10,13 @@ import java.io.{File, PrintWriter}
  * @author Jérémy Bossut, Jonathan Geoffroy
  */
 abstract case class ASTFile(name: String) {
+  def accept(ast: AST): ASTFileGenerator
+
 
   /**
    * Fields to generate into this ASTFile
    */
-  private var fields: List[ASTField] = List()
+  var fields: List[ASTField] = List()
 
   /**
    * All traits implemented by this ASTFile
@@ -31,7 +33,7 @@ abstract case class ASTFile(name: String) {
    */
   private var subFiles : Set[ASTFile] = Set()
 
-  private var isListOfElements = false
+  var isListOfElements = false
 
   /**
    * Add an implemented trait to the list <code>traits</code>

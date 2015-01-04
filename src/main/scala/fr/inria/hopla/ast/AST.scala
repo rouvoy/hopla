@@ -43,4 +43,5 @@ trait AST {
    * @return true if ast doesn't contain any ASTFile
    */
   def isEmpty: Boolean
+  def getFiles: List[ASTFile]
 }

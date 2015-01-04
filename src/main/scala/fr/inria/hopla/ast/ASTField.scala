@@ -4,5 +4,5 @@ package fr.inria.hopla.ast
  * Representation of a class field in ASTClass
  * @author Jérémy Bossut, Jonathan Geoffroy
  */
-class ASTField(val name: String, val fieldType: String) {
+case class ASTField(val name: String, val fieldType: String) {
 }

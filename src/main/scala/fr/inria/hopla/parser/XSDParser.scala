@@ -29,8 +29,7 @@ class XSDParser {
         case event@EvElemStart(_, label, _, _) =>
           label match {
             case "schema" => processors = processors.push(new SchemaProcessor(ast).process(event))
-            case "element"
-                 | "attributeGroup" => process(new ASTClassProcessor(ast), event)
+            case "element" => process(new ASTClassProcessor(ast), event)
             case "group" => process(new ASTTraitProcessor(ast), event)
             case "extension" => process(new ExtensionProcessor(ast), event)
             case "complexType" => process(new ComplexTypeProcessor(ast), event)
