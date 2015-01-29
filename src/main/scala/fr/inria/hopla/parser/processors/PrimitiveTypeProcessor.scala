@@ -14,7 +14,7 @@ class PrimitiveTypeProcessor extends ASTFieldProcessor {
   /**
    * Create a new field from "base" attribute, and add it to parent<br>
    * @param event the event of the marker to process
-   * @param parent the parent processor.
+   * @param parent the parent processor
    * @return <code>this</code>
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {

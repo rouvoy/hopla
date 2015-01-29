@@ -13,9 +13,9 @@ class ExtensionProcessor(ast: AST) extends ASTFieldProcessor {
 
   /**
    * Create a new ASTTrait from "base" attribute<br>
-   * Let the parent implements this new ASTTrait
+   * Let the parent implement this new ASTTrait
    * @param event the event of the marker to process
-   * @param parent the parent processor.
+   * @param parent the parent processor
    * @return <code>this</code>
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {

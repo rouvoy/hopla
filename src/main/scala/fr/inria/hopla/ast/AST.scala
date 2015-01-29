@@ -14,7 +14,7 @@ trait AST {
   def getOrAddFile[T <: ASTFile](file: T): T
 
   /**
-   *
+   * Get the file named <code>filename</code> if it exists
    * @param filename the name of the file to find
    * @return the file if found, None otherwise.
    */
@@ -26,20 +26,20 @@ trait AST {
   def simplify(): Unit
 
   /**
-   *
+   * Compute ast size
    * @return the number of ASTFile contained by the AST
    */
   def size : Int
 
   /**
-   * check if the AST contains an ASTFile named <code>filename</code>
+   * Check if the AST contains an ASTFile named <code>filename</code>
    * @param filename the name of the ASTFile to check
    * @return true if ast contains an ASTFile named <code>filename</code>
    */
   def contains(filename : String) : Boolean
 
   /**
-   *
+   * Check whether ast is empty or not
    * @return true if ast doesn't contain any ASTFile
    */
   def isEmpty: Boolean

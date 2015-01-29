@@ -1,14 +1,21 @@
 package fr.inria.hopla.generator
 
-import fr.inria.hopla.ast.{ASTFile, ASTField, AST, ASTClass}
+import fr.inria.hopla.ast._
 
 /**
- * Generate a class which contains fields and attributes.Each field can be a sequence of elements or a simple object<br>
- * Also generate a companion object which contains apply methods in order to create instances of this class easily
+ * Generate a class which contains fields and attributes. Each field can be a sequence of elements or a simple object<br/>
+ * This class extends <i>Marker</i> trait, so it generates :
+ * <ul>
+ *   <li><i>getName</i> method</li>
+ *   <li><i>getText</i> method</li>
+ *   <li><i>getChildren</i> method</li>
+ * </ul>
+ * <br/>
+ * Also generate a companion object which contains apply methods in order to easily create instances of this class
  *
  * @author Jérémy Bossut, Jonathan Geoffroy
  */
-class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator(astClass) {
+class ASTClassGenerator(ast: AST, astClass: ASTClass) extends ASTFileGenerator(astClass) {
   /**
    * The list of fields to generate
    */
@@ -17,24 +24,24 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
   /**
    * The list of attributes to generate
    */
-  val attributes =  astClass.fields.filter(f => isPrimitiveType(f)).toList
+  val attributes = astClass.fields.filter(f => isPrimitiveType(f)).toList
 
   /**
-   *
+   * Check if the field is a sequence of elements
    * @param field the field to check
    * @return true if the field is a sequence of elements
    */
-  def isListOfElements(field: ASTField) : Boolean = {
+  def isListOfElements(field: ASTField): Boolean = {
     ast.get(field.fieldType) match {
-      case Some(astFile)  => astFile.isListOfElements
-      case None           => false
+      case Some(astFile) => astFile.isListOfElements
+      case None => false
     }
   }
 
   /**
-   *
+   * Check if the field is a primitive type
    * @param field the field to check
-   * @return true if the field has a primitive type
+   * @return true if the field is a primitive type
    */
   def isPrimitiveType(field: ASTField): Boolean = field.fieldType == "String"
 
@@ -56,9 +63,9 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
    * @param generator the generator where to write generated code
    * @param field the field of the generated apply method
    */
-  def generateApplyDeclaration(generator: PrintGenerator, field:ASTField): Unit = {
+  def generateApplyDeclaration(generator: PrintGenerator, field: ASTField): Unit = {
     val astClassName = scalaFileName(astClass.name)
-    val fieldType = if(isListOfElements(field)) {
+    val fieldType = if (isListOfElements(field)) {
       scalaFileName(field.fieldType) + "*"
     }
     else {
@@ -68,12 +75,12 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
   }
 
   /**
-   *
-   * @param field
-   * @return the default value of the field: Seq[fieldType] if the field is a sequence of element, null otherwise
+   * Give the default value of the provided <code>field</code>,
+   * @param field the field to have the default value
+   * @return the default value of the field: Seq[fieldType] if the field is a sequence of elements, null otherwise
    */
   def defaultValue(field: ASTField): String = {
-    if(isListOfElements(field)) {
+    if (isListOfElements(field)) {
       s"Seq[${scalaFileName(field.fieldType)}]()"
     }
     else {
@@ -85,36 +92,36 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
    * Generate a class and its fields and attributes
    */
   object ClassGenerator {
-    /**each field of this class
-     * Generate the inheritance part: extends [inheritance1] with [inheritance2] ...
-     *
-     * @param generator the generator where to add file content
-     */
+    /** each field of this class
+      * Generate the inheritance part: extends [inheritance1] with [inheritance2] ...
+      *
+      * @param generator the generator where to add file content
+      */
     protected def generateInheritance(generator: PrintGenerator) = {
-      var fileExtends : List[ASTFile] = astClass.getTraits.toList
+      var fileExtends: List[ASTFile] = new ASTTrait("Marker") :: astClass.getTraits.toList
       // If file inherits from another class, prepend fileExtends list by this inherited class
       astClass.getInheritsFrom match {
         case Some(astClass) => fileExtends = List(astClass) ::: fileExtends
         case None =>
       }
 
-      if(fileExtends.nonEmpty) {
+      if (fileExtends.nonEmpty) {
         // For the first element of inheritance list, prepend class name by "extends"
         generator.write(s" extends ${scalaFileName(fileExtends(0).name)}")
 
         // For all others, prepend class name by a comma
-        for(fileTrait <- fileExtends.drop(1)) {
+        for (fileTrait <- fileExtends.drop(1)) {
           generator.write(s" with  ${scalaFileName(fileTrait.name)}")
         }
       }
     }
 
     /**
-     * generate each field of this class
+     * Generate each field of this class
      * @param generator the generator where to add content
      */
-    def generateFields(generator: PrintGenerator):Unit = {
-      if(fields.nonEmpty) {
+    def generateFields(generator: PrintGenerator): Unit = {
+      if (fields.nonEmpty) {
         generator.write("(")
         generator.write(generateField(fields(0)))
         for (field <- fields.drop(1)) {
@@ -126,8 +133,8 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
 
     /**
      * Generate a field
-     * @param field the field to stringify
-     * @return the stringified field
+     * @param field the field to convert into a String
+     * @return the field converted into a String
      */
     def generateField(field: ASTField): String = {
       val stringField = s"var ${scalaFileName(field.name)}: "
@@ -140,10 +147,10 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
     }
 
     /**
-     * generate each attribute of this class
+     * Generate each attribute of this class
      * @param generator the generator where to add content
      */
-    def generateAttributes(generator: PrintGenerator):Unit = {
+    def generateAttributes(generator: PrintGenerator): Unit = {
       for (attribute <- attributes) {
         // Field attribute
         generator.writeLine(s"var ${scalaFileName(attribute.name)} : ${scalaFileName(attribute.fieldType)} = null")
@@ -159,7 +166,7 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
     }
 
     /**
-     * generate each apply method of this class
+     * Generate each apply method of this class
      * @param generator the generator where to add content
      */
     def generateApplyMethods(generator: PrintGenerator) = {
@@ -176,7 +183,91 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
     }
 
     /**
-     * generate the class, its fields, attributes and apply methods
+     * Generate a method which returns the name of the marker to generate
+     * @param generator the generator where to add content
+     */
+    def generateGetNameMethod(generator: PrintGenerator): Unit = {
+      generator.writeLine("override def getName () : String = \"" + astClass.name + "\"")
+    }
+
+    /**
+     * Generate a method which returns the content of the marker to generate
+     * @param generator the generator where to add content
+     */
+    def generateGetTextMethod(generator: PrintGenerator) = {
+      generator.writeLine("override def getText () : String = text")
+    }
+
+    /**
+     * Generate a child from <code>field</code>
+     * @see generateGetChildrenMethod
+     * @param field the field to transform into a child
+     * @return the transformed child
+     */
+    private def generateChild(field: ASTField): String = {
+      if (isListOfElements(field)) {
+        scalaFileName(field.name)
+      }
+      else {
+        s"Seq[Marker] (${scalaFileName(field.name)})"
+      }
+    }
+
+    /**
+     * Generate a <i>getChildrenMethod</i> which returns a sequence of children markers.<br/>
+     * Add each field which is not a primitive type into a Seq[Marker], then return the created sequence.
+     * @param generator the generator where to add content
+     */
+    def generateGetChildrenMethod(generator: PrintGenerator): Unit = {
+      generator.startDef("getChildren", "Seq[Marker]")
+      val fields = astClass.fields.filterNot(f => isPrimitiveType(f)).toList
+      if (fields.nonEmpty) {
+        generator.write(generateChild(fields(0)))
+        for (field <- fields.drop(1)) {
+          generator.write(s" ++ ${generateChild(field)}")
+        }
+      } else {
+        generator.writeLine("Seq[Marker]()")
+      }
+      generator.endDef()
+    }
+
+    def generateHtmlAttributesMethod(generator: PrintGenerator) = {
+      generator.startDef("htmlAttributes", "String")
+      generator.writeLine("val builder : StringBuilder = new StringBuilder")
+
+      // Map each scala attribute with the html attribute if the latter isn't null
+      for(attribute <- attributes) {
+        val attributeName = scalaFileName(attribute.name)
+        generator.startBlock(s"if($attributeName != null)")
+        // builder.append("htmlAttributeName = \"" + scalaAttributeName + "\"")
+        generator.writeLine(s"""builder.append(" ${attribute.name} = \\"" + $attributeName + "\\"")""")
+        generator.endBlock()
+      }
+      generator.writeLine("builder.toString")
+      generator.endDef()
+    }
+
+    /**
+     * Generate a <i>toHtml</i> method which returns an HTML code corresponding to this Marker<br/>
+     * Generate:
+     * <ul>
+     *   <li><i>getName</i> method</li>
+     *   <li><i>getText</i> method</li>
+     *   <li><i>getChildren</i> method</li>
+     * </ul>
+     * add each field which isn't a primitive type into a Seq[Marker], then return the created sequence.
+     * @param generator the generator where to add content
+     */
+    def generateToHtmlMethods(generator: PrintGenerator) = {
+      generateGetNameMethod(generator)
+      generateGetTextMethod(generator)
+      generateGetChildrenMethod(generator)
+      generateHtmlAttributesMethod(generator)
+    }
+
+    /**
+     * Generate the class, its fields, attributes and apply methods
      * @param generator the generator where to add content
      */
     def generate(generator: PrintGenerator) = {
@@ -186,6 +277,7 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
       generator.startBlock("")
       generateAttributes(generator)
       generateApplyMethods(generator)
+      generateToHtmlMethods(generator)
       generator.endBlock()
     }
   }
@@ -206,19 +298,43 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
     }
 
     /**
+     * Generate a parameter for <i>apply</i> returned object, which represents the provided <code>currentField</code>
+     * If this <code>currentField</code> equals <code>applyField</code>, return the applyField's name,
+     * return <code>defaultValue</code> of <code>currentField</code> otherwise
+     * @param applyField the parameter of apply
+     * @param currentField the field to insert into object returned by apply
+     * @return a String which represents the field to insert into object returned by apply
+     */
+    private def generateApplyParameter(applyField : ASTField, currentField : ASTField) : String = {
+      if(currentField equals applyField) {
+        scalaFileName(currentField.name)
+      }
+      else {
+        defaultValue(currentField)
+      }
+    }
+
+    /**
      * Generate apply method for the field given as parameter
+     * @param applyField the parameter of apply
      * @param generator the generator where to add content
      */
-    def generateApply(generator: PrintGenerator, field: ASTField) = {
+    def generateApply(generator: PrintGenerator, applyField: ASTField) = {
       val astClassName = scalaFileName(astClass.name)
-      generateApplyDeclaration(generator, field)
+      generateApplyDeclaration(generator, applyField)
+
+      // Generate new instance to return
       generator.write(s"new $astClassName( ")
-      if(fields.nonEmpty) {
-        generator.write(defaultValue(fields(0)))
-        for (field <- fields.drop(1)) {
-          generator.write(s", ${defaultValue(field)}")
+
+      // generate each parameter
+      if (fields.nonEmpty) {
+        generator.write(generateApplyParameter(applyField, fields(0)))
+        for (currentField <- fields.drop(1)) {
+          generator.write(s", ${generateApplyParameter(applyField, currentField)}")
         }
       }
+
+      // Close the returned instance
       generator.writeLine(")")
       generator.endDef()
     }
@@ -233,4 +349,5 @@ class ASTClassGenerator(ast : AST, astClass : ASTClass) extends ASTFileGenerator
       generator.endBlock()
     }
   }
+
 }

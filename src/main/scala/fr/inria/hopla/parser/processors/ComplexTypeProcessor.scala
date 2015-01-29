@@ -14,7 +14,7 @@ class ComplexTypeProcessor(ast: AST) extends ASTTraitProcessor(ast) {
   /**
    * Skip markers without name, and create a Trait when there is a name
    * @param event the event of the marker to process
-   * @param parent the parent processor.
+   * @param parent the parent processor
    * @return <code>parent</code> for markers without name, <code>this</code> otherwise
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {

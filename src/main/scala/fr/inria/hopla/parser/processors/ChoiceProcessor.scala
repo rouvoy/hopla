@@ -14,7 +14,7 @@ class ChoiceProcessor extends AbstractXSDProcessor {
   /**
    * Process the marker by setting parentFile.isListOfElements, and delegate these children to its parent
    * @param event the event of the marker to process
-   * @param parent the parent processor.
+   * @param parent the parent processor
    * @return <code>parent</code>
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {

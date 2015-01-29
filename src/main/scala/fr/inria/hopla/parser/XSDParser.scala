@@ -16,10 +16,10 @@ class XSDParser {
   var processors = Stack[XSDProcessor]()
 
   /**
-   * parse the entire XSD file, and add each Compilation Units to the AST<br>
-   * For each marker, just delegates the process to a [MarkerName]processor, and process the marker<br>
-   * The processor just process the marker by adding data into AST, and return the current parent,
-   * depending on the type of the marker
+   * Parse the entire XSD file, and add each Compilation Units to the AST<br>
+   * For each marker, delegate the process to a [MarkerName]processor, and process the marker<br>
+   * The processor processes the marker by adding data into AST, and returns the current parent,
+   * depending on the marker type
    *
    * @param xsd the XSD to parse
    */

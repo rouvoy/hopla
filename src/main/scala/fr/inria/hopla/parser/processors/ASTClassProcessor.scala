@@ -2,6 +2,7 @@ package fr.inria.hopla.parser.processors
 
 import fr.inria.hopla.ast.{AST, ASTClass, ASTFile}
 
+import scala.xml.Text
 import scala.xml.pull.EvElemStart
 
 /**
@@ -16,11 +17,19 @@ class ASTClassProcessor(ast : AST) extends ASTFileProcessor {
   /**
    * Process the marker by creating a new ASTClass in the AST
    * @param event the event of the marker to process
-   * @param parent the parent processor.
+   * @param parent the parent processor
    * @return <code>this</code>
    */
   override def process(event: EvElemStart, parent: XSDProcessor): XSDProcessor = {
     astClass = ast.getOrAddFile(new ASTClass(markerNameField(event)))
+    event.attrs.get("maxOccurs") match {
+      case Some(value) => value match {
+        case Text("unbounded") => astClass.setListOfElements(isListOfElements = true)
+        case _ =>
+      }
+      case None =>
+    }
+
     parent.processChild(event, astClass)
     this
   }

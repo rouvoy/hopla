@@ -17,6 +17,6 @@ object XHtmlParsing extends App {
     val xml = new XMLEventReader(Source.fromFile("src/main/resources/xhtml_sample.xsd"))
     val parser = new XSDParser with ASTComponentImpl
     val ast = parser.parse(xml).asInstanceOf[ASTImpl]
-    new ASTGenerator(ast).generate("src/main/scala/examples/xhtml/", "examples.xhtml")
+    new ASTGenerator(ast).generate("target/generated/scala/fr/inria/hopla/xhtml", "fr.inria.hopla.xhtml")
   }
 }

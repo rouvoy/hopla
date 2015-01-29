@@ -20,7 +20,7 @@ class PrintGenerator(writer : PrintWriter) {
   var blocks = 0
 
   /**
-   * write the content to <code>writer</code>
+   * Write the content to <code>writer</code>
    * @param content the content to write
    * @return this
    */
@@ -30,14 +30,14 @@ class PrintGenerator(writer : PrintWriter) {
   }
 
   /**
-   * write the content followed by a new line to <code>writer</code>
+   * Write the content followed by a new line to <code>writer</code>
    * @param content the content to write
    * @return this
    */
   def writeLine(content: String): PrintGenerator = write(s"$content\n")
 
   /**
-   * add an indentation to the current line
+   * Add an indentation to the current line
    * @return this
    */
   def indent: PrintGenerator = {
@@ -55,8 +55,8 @@ class PrintGenerator(writer : PrintWriter) {
   }
 
   /**
-   * start a blocks, prefixed by <code>prefixContent</code><br>
-   * write the <code>prefixContent</code> followed by `{` and a new line
+   * Start a block, prefixed by <code>prefixContent</code><br>.
+   * Write <code>prefixContent</code> followed by `{` and a new line
    * @param prefixContent the prefix of the new block
    * @return this
    */
@@ -66,7 +66,7 @@ class PrintGenerator(writer : PrintWriter) {
   }
 
   /**
-   * close the block
+   * Close the block
    * @return this
    */
   def endBlock() : PrintGenerator = {
@@ -85,6 +85,9 @@ class PrintGenerator(writer : PrintWriter) {
   def startDef(name: String, parameterName : String, parameterType : String, returnType : String) =
     startBlock(s"def ${scalaFileName(name)} (${scalaFileName(parameterName)} : ${scalaFileName(parameterType)}) : ${scalaFileName(returnType)} = ")
 
+  def startDef(name: String, returnType: String) =
+    startBlock(s"def ${scalaFileName(name)} () : ${scalaFileName(returnType)} = ")
+
   /**
    * Close the method definition<br>
    * Same as endBlock
@@ -93,7 +96,7 @@ class PrintGenerator(writer : PrintWriter) {
   def endDef() = endBlock()
 
   /**
-   * close all opened blocks and close the <code>writer</code>
+   * Close all opened blocks and close the <code>writer</code>
    */
   def close(): Unit = {
     while(blocks > 0) {
