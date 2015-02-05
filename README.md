@@ -26,4 +26,8 @@ Launch fr.inria.hopla.XHtmlParsing.scala
 		            	ast
 		            	parser.processors
 
+## How to execute ##
 
+The following command allows to compile and run the entire application:
+
+    sbt "project hopla" compile run "project generatedxhtml" compile "project hoplaxhtml" compile run
