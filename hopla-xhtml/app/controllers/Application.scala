@@ -14,7 +14,7 @@ object Application extends Controller {
    * @return a 200:Ok response with the html content of the presentation to display
    */
   def index = Action {
-    Ok(views.html.index(Example.presentation.toHtml))
+    Ok(views.html.index("Hopla Presentation", Example.presentation.toHtml))
   }
 
 }
