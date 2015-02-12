@@ -1,22 +1,21 @@
 package fr.inria.hoplaxhtml.presentation
 
-import fr.inria.hoplaxhtml.xhtml.{head, body, html}
+import fr.inria.hopla.xhtml.Marker
+import fr.inria.hoplaxhtml.xhtml.{Block, head, body, html}
 
 import scala.io.Source
 
 /**
 * @author Jérémy Bossut, Jonathan Geoffroy
 */
-case class Presentation(slides : Slide*) extends html("", head(""), new body("", slides)) {
+case class Presentation(markers : Seq[Block]) extends html("", head(""), new body("", markers)) {
   override def toHtml : String = {
-    val builder = new StringBuilder(Source.fromFile("hopla-xhtml/src/main/resources/reveal_top.html").mkString)
+    val builder = new StringBuilder()
 
     // Add each slide
-    for(child <- slides) {
+    for(child <- markers) {
       builder.append(child.toHtml)
     }
-
-    builder.append(Source.fromFile("hopla-xhtml/src/main/resources/reveal_bottom.html").mkString)
 
     builder.toString
   }
